@@ -44,6 +44,7 @@ class AgentClient(object):
         self._command_queue_address = 'tcp://%s:%s' % (self._client_core.server_name, port)
 
     def say_hi(self):
+        print self._command_queue_address
         self._registration_queue.send_json({'type': consts.GREETING_TYPE,
                                             'server': self._client_core.server_name,
                                             'command_queue_address': self._command_queue_address})
@@ -56,7 +57,7 @@ class AgentClient(object):
 
         msg = self._command_queue.recv_json()
         if msg['type'] == consts.GET_SYSTEM_TYPE:
-            (success, value) = self._client_core.system()
+            (success, value) = self._client_core.systems()
             self._command_queue.send_json({'success': success, 'value': value})
         elif msg['type'] == consts.GET_SYSTEM_TYPE:
             (success, value) = self._client_core.get_all_configurations(msg['system'])

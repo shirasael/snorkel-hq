@@ -100,7 +100,7 @@ class AgentServer(object):
 
     def configuration(self, system, configuration_id):
         self._command_queue.send_json(
-            {'type': consts.GET_CONFIGURATIONS_TYPE, 'system': system, 'configuration_id': configuration_id})
+            {'type': consts.GET_CONFIGURATION_TYPE, 'system': system, 'configuration_id': configuration_id})
         answer = self._command_queue.recv_json()
         if answer['success']:
             return answer['value']
@@ -108,7 +108,7 @@ class AgentServer(object):
 
     def update_configuration(self, system, configuration):
         self._command_queue.send_json(
-            {'type': consts.PUT_CONFIGURATIONS_TYPE, 'system': system,
+            {'type': consts.PUT_CONFIGURATION_TYPE, 'system': system,
              'configuration_id': configuration.id,
              'configuration_content': configuration.content})
         answer = self._command_queue.recv_json()
@@ -119,22 +119,23 @@ class AgentServer(object):
 class SnorkelHQ(object):
     def __init__(self, repository_path, remote):
         self._agents = []
-        self._servers_agents = []
+        self._servers_agents = {}
         self._repository = Repository(repository_path, remote)
+        self._agents_registration_queue = None
 
     def initialize(self):
         ctx = zmq.Context()
-        self._agents_regestration_queue = ctx.socket(zmq.socket.REP)
-        self._agents_regestration_queue.bind('tcp://*:12345')
+        self._agents_registration_queue = ctx.socket(zmq.REP)
+        self._agents_registration_queue.bind('tcp://*:12345')
         self._repository.initialize()
 
     def handle_registration_message(self):
-        if self._agents_regestration_queue.poll(3000) != zmq.POLLIN:
+        if self._agents_registration_queue.poll(3000) != zmq.POLLIN:
             print "Didn't get message"
             return
 
-        msg = self._agents_regestration_queue.recv_json()
-        self._agents_regestration_queue.send_json('ACK')
+        msg = self._agents_registration_queue.recv_json()
+        self._agents_registration_queue.send_json('ACK')
         if msg['type'] != consts.GREETING_TYPE:
             return
         self.add_agent(server_name=msg['server'], address=msg['command_queue_address'])
