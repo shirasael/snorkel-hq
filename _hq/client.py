@@ -6,16 +6,16 @@ import zmq
 
 
 class AgentClientCore(object):
-    def __init__(self, server_name, get_system_callback, get_all_configuration_callback, get_configuration_callback,
+    def __init__(self, server_name, get_systems_callback, get_all_configuration_callback, get_configuration_callback,
                  put_configuration_callback):
         self.server_name = server_name
-        self._get_system_callback = get_system_callback
+        self._get_systems_callback = get_systems_callback
         self._get_all_configuration_callback = get_all_configuration_callback
         self._get_configuration_callback = get_configuration_callback
         self._put_configuration_callback = put_configuration_callback
 
     def systems(self):
-        return self._get_system_callback.__call__()
+        return self._get_systems_callback.__call__()
 
     def get_all_configurations(self, system):
         return self._get_all_configuration_callback.__call__()
