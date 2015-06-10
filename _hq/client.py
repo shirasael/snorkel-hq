@@ -1,4 +1,4 @@
-from _hq.consts import GET_ALL_SYSTEMS_COMMAND
+from _hq.consts import GET_ALL_SYSTEMS_COMMAND, GET_CONFIGURATION_COMMAND, PUT_CONFIGURATION_COMMAND
 
 __author__ = 'code-museum'
 
@@ -30,11 +30,15 @@ class SnorkelHQCommander(object):
         self._force_initialize()
         return self.command(GET_ALL_SYSTEMS_COMMAND)
 
-    def command(self, command):
-        self._command_queue.send_json(command)
+    def deploy_configuration(self, server, system, file_name, config):
+        self._force_initialize()
+        return self.command(PUT_CONFIGURATION_COMMAND, value={'server': server, 'system': system, 'file_name': file_name, 'config': config})
+
+    def command(self, type, value=None):
+        self._command_queue.send_json({'type': type, 'value': value})
         if self._command_queue.poll(3000) != zmq.POLLIN:
             self._initialized = False
-            raise Exception('Timeout after not getting answer for command %s' % command)
+            raise Exception('Timeout after not getting answer for command %s' % type)
         return self._command_queue.recv_json()
 
 
@@ -100,10 +104,10 @@ class SnorkelAgent(object):
         elif msg['type'] == consts.GET_ALL_CONFIGURATIONS_TYPE:
             (success, value) = self._client_core.get_all_configurations(msg['system'])
             self._command_queue.send_json({'success': success, 'value': value})
-        elif msg['type'] == consts.GET_CONFIGURATION_TYPE:
+        elif msg['type'] == consts.GET_CONFIGURATION_COMMAND:
             (success, value) = self._client_core.get_configuration(msg['system'], msg['configuration_id'])
             self._command_queue.send_json({'success': success, 'value': value})
-        elif msg['type'] == consts.PUT_CONFIGURATION_TYPE:
+        elif msg['type'] == consts.PUT_CONFIGURATION_COMMAND:
             (success, value) = self._client_core.put_configuration(msg['system'], msg['configuration_id'],
                                                                    msg['configuration_content'])
             self._command_queue.send_json({'success': success, 'value': value})
