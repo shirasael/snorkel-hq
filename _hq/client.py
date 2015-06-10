@@ -30,6 +30,10 @@ class SnorkelHQCommander(object):
         self._force_initialize()
         return self.command(GET_ALL_SYSTEMS_COMMAND)
 
+    def get_all_configurations(self, system):
+        self._force_initialize()
+        return self.command(GET_ALL_SYSTEMS_COMMAND, value=system)
+
     def deploy_configuration(self, server, system, file_name, config):
         self._force_initialize()
         return self.command(PUT_CONFIGURATION_COMMAND, value={'server': server, 'system': system, 'file_name': file_name, 'config': config})
@@ -101,7 +105,7 @@ class SnorkelAgent(object):
         if msg['type'] == consts.GET_SYSTEM_TYPE:
             (success, value) = self._client_core.systems()
             self._command_queue.send_json({'success': success, 'value': value})
-        elif msg['type'] == consts.GET_ALL_CONFIGURATIONS_TYPE:
+        elif msg['type'] == consts.GET_ALL_CONFIGURATIONS_MESSAGE:
             (success, value) = self._client_core.get_all_configurations(msg['system'])
             self._command_queue.send_json({'success': success, 'value': value})
         elif msg['type'] == consts.GET_CONFIGURATION_COMMAND:
