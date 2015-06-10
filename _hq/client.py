@@ -1,3 +1,4 @@
+from logbook import info
 from _hq.consts import GET_ALL_SYSTEMS_COMMAND, PUT_CONFIGURATION_COMMAND
 
 __author__ = 'code-museum'
@@ -90,7 +91,7 @@ class SnorkelAgent(object):
         self._command_queue_address = 'tcp://%s:%s' % (self._hq_server_name, port)
 
     def say_hi(self):
-        print self._command_queue_address
+        info(self._command_queue_address)
         self._registration_queue.send_json({'type': consts.GREETING_TYPE,
                                             'server': self._hq_server_name,
                                             'command_queue_address': self._command_queue_address})
