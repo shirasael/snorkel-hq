@@ -29,11 +29,11 @@ class SnorkelHQCommander(object):
 
     def get_all_systems(self):
         self._force_initialize()
-        return self.command(GET_ALL_SYSTEMS_COMMAND)
+        return self.command('get-all-systems')
 
     def get_all_configurations(self, system):
         self._force_initialize()
-        return self.command(GET_ALL_SYSTEMS_COMMAND, value=system)
+        return self.command('get-all-configurations', value=system)
 
     def deploy_configuration(self, server, system, file_name, config):
         self._force_initialize()
@@ -42,7 +42,7 @@ class SnorkelHQCommander(object):
     def command(self, type, value=None):
         self._command_queue.send_json({'type': type, 'value': value})
         if self._command_queue.poll(3000) != zmq.POLLIN:
-            self._initialized = False
+            self.initialize()
             raise Exception('Timeout after not getting answer for command %s' % type)
         return self._command_queue.recv_json()
 
@@ -105,7 +105,6 @@ class SnorkelAgent(object):
         msg = self._command_queue.recv_json()
         if msg['type'] == consts.GET_SYSTEM_TYPE:
             (success, value) = self._client_core.systems()
-            print value
             self._command_queue.send_json({'success': success, 'value': value})
         elif msg['type'] == consts.GET_ALL_CONFIGURATIONS_MESSAGE:
             (success, value) = self._client_core.get_all_configurations(msg['system'])
