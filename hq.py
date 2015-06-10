@@ -97,7 +97,7 @@ class AgentServer(object):
 
     @property
     def systems(self):
-        self._command_queue.send_json({'type': consts.GET_SYSTEMS_MESSAGE})
+        self._command_queue.send_json({'type': consts.GET_SYSTEM_TYPE})
         answer = self._command_queue.recv_json()
         if answer['success']:
             return answer['value']
