@@ -182,7 +182,7 @@ class SnorkelHQ(object):
             return
 
         msg = self._command_queue.recv_json()
-        if msg['type'] == consts.GET_ALL_SYSTEMS:
+        if msg['type'] == consts.GET_ALL_SYSTEMS_COMMAND:
             return self.get_all_sysatems_names()
         elif msg['type'] == consts.GET_ALL_CONFIGURATIONS_MESSAGE:
             return self.get_configuration_files(msg['value'])
