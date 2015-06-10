@@ -12,7 +12,7 @@ class SnorkelAgentCore(AgentCore):
         }
 
     def _get_systems(self):
-        return self.configurations_to_system.keys()
+        return 'yo', self.configurations_to_system.keys()
 
     def _get_configurations(self, system):
         return self.configurations_to_system[system]

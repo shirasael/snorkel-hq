@@ -104,6 +104,7 @@ class SnorkelAgent(object):
         msg = self._command_queue.recv_json()
         if msg['type'] == consts.GET_SYSTEM_TYPE:
             (success, value) = self._client_core.systems()
+            print value
             self._command_queue.send_json({'success': success, 'value': value})
         elif msg['type'] == consts.GET_ALL_CONFIGURATIONS_MESSAGE:
             (success, value) = self._client_core.get_all_configurations(msg['system'])
@@ -127,7 +128,7 @@ class SnorkelAgentRunner(object):
         last_time_welcoming = None
         self._agnet.initialize()
         while True:
-            if not last_time_welcoming or last_time_welcoming <= datetime.now() - timedelta(minutes=5):
+            if not last_time_welcoming or last_time_welcoming <= datetime.now() - timedelta(seconds=15):
                 self._agnet.say_hi()
                 last_time_welcoming = datetime.now()
             self._agnet.handle_command_request()

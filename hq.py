@@ -99,6 +99,7 @@ class AgentServer(object):
         self._command_queue.send_json({'type': consts.GET_SYSTEM_TYPE})
         answer = self._command_queue.recv_json()
         if answer['success']:
+            print answer['value']
             return answer['value']
         return []
 
@@ -124,7 +125,7 @@ class AgentServer(object):
              'configuration_content': configuration.content})
         answer = self._command_queue.recv_json()
         if answer['success']:
-            print 'Configuration update succeed'
+            info('Configuration update succeed')
 
 
 class SnorkelHQ(object):
@@ -172,6 +173,8 @@ class SnorkelHQ(object):
         agent = AgentServer(server_name, address)
         agent.initialize()
         self._agents[server_name] = agent
+        info("Add agent for %s with systems: %s" % (server_name, agent.systems))
+        print agent, agent.systems
         for system in agent.systems:
             self._systems[system] = {'name': system, 'agent': agent}
 
@@ -184,9 +187,11 @@ class SnorkelHQ(object):
         debug("Got message")
 
         msg = self._command_queue.recv_json()
+        answer = None
         if msg['type'] == 'get-all-systems':
             info("Got command for getting all systems")
-            return self.get_all_sysatems_names()
+            answer = self.get_all_systems_names()
+            self._command_queue.send_json(answer)
         elif msg['type'] == consts.GET_ALL_CONFIGURATIONS_MESSAGE:
             return self.get_configuration_files(msg['value'])
         elif msg['type'] == consts.DEPLOY_CONFIGURATION_MESSAGE:
@@ -215,7 +220,7 @@ class SnorkelHQ(object):
             agent.update_configuration()
         return True
 
-    def get_all_sysatems_names(self):
+    def get_all_systems_names(self):
         return self._systems.keys()
 
 
