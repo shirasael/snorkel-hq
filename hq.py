@@ -103,7 +103,7 @@ class AgentServer(object):
 
     def configuration(self, system, configuration_id):
         self._command_queue.send_json(
-            {'type': consts.GET_CONFIGURATION_TYPE, 'system': system, 'configuration_id': configuration_id})
+            {'type': consts.GET_CONFIGURATION_COMMAND, 'system': system, 'configuration_id': configuration_id})
         answer = self._command_queue.recv_json()
         if answer['success']:
             return answer['value']
@@ -111,7 +111,7 @@ class AgentServer(object):
 
     def update_configuration(self, system, configuration):
         self._command_queue.send_json(
-            {'type': consts.PUT_CONFIGURATION_TYPE, 'system': system,
+            {'type': consts.PUT_CONFIGURATION_COMMAND, 'system': system,
              'configuration_id': configuration.id,
              'configuration_content': configuration.content})
         answer = self._command_queue.recv_json()
