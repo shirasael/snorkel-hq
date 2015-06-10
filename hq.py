@@ -128,8 +128,8 @@ class SnorkelHQ(object):
         self._agents_registration_queue = None
         self._command_queue = None
 
-        self._agents = set()
-        self._systems = set()
+        self._agents = {}
+        self._systems = {}
 
         self._repository = Repository(repository_path, remote)
 
@@ -175,6 +175,8 @@ class SnorkelHQ(object):
         msg = self._command_queue.recv_json()
         if msg['type'] == consts.GET_ALL_SYSTEMS:
             pass
+        elif msg['type'] == consts.DEPLOY_CONFIGURATION_MESSAGE:
+            self.deploy_configuration(msg['value'])
         else:
             self._command_queue.send_json('GOT_BAD_COMMAND')
 
@@ -192,6 +194,11 @@ class SnorkelHQ(object):
 
     def get_configuration(self, server, system, configuration_id):
         return server.agents.configuration(system, configuration_id)
+
+    def deploy_configuration(self, values):
+        system = self._systems[values['system_key']]
+        for agent in system.agents:
+            agent.update_configuration()
 
 
 class SnorkelHQRunner(object):
