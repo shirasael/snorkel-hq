@@ -25,7 +25,7 @@ class GitManager(object):
 
     @staticmethod
     def run_git_command(args=None, repo_path=None):
-        print 'Run git command: "%s" from dir: %s' % (' '.join(['git'] + args), repo_path)
+        info('Run git command: "%s" from dir: %s' % (' '.join(['git'] + args), repo_path))
         p = subprocess.Popen(['git'] + args, cwd=repo_path)
         p.wait()
 
@@ -99,7 +99,7 @@ class AgentServer(object):
         self._command_queue.send_json({'type': consts.GET_SYSTEM_TYPE})
         answer = self._command_queue.recv_json()
         if answer['success']:
-            print answer['value']
+            info("Got systems %s from agent" % answer['value'])
             return answer['value']
         return []
 
@@ -107,6 +107,7 @@ class AgentServer(object):
         self._command_queue.send_json({'type': consts.GET_ALL_CONFIGURATIONS_MESSAGE, 'system': system})
         answer = self._command_queue.recv_json()
         if answer['success']:
+            info("Got all configurations: %s from agent" % answer['value'])
             return answer['value']
         return []
 
@@ -174,7 +175,6 @@ class SnorkelHQ(object):
         agent.initialize()
         self._agents[server_name] = agent
         info("Add agent for %s with systems: %s" % (server_name, agent.systems))
-        print agent, agent.systems
         for system in agent.systems:
             self._systems[system] = {'name': system, 'agent': agent}
 
@@ -187,17 +187,19 @@ class SnorkelHQ(object):
         debug("Got message")
 
         msg = self._command_queue.recv_json()
-        answer = None
+        answer = 'Failure'
         if msg['type'] == 'get-all-systems':
             info("Got command for getting all systems")
             answer = self.get_all_systems_names()
-            self._command_queue.send_json(answer)
         elif msg['type'] == 'get-all-configurations':
-            return self.get_configuration_files(msg['value'])
+            info("Got command for getting configurations")
+            answer = self.get_configuration_files(msg['value'])
         elif msg['type'] == consts.DEPLOY_CONFIGURATION_MESSAGE:
             self.deploy_configuration(msg['value'])
         else:
             self._command_queue.send_json('GOT_BAD_COMMAND')
+
+        self._command_queue.send_json(answer)
 
     def get_system(self):
         systems = []
@@ -209,7 +211,11 @@ class SnorkelHQ(object):
         return [agent.server for agent in self._agents if system and system in agent.systems]
 
     def get_configuration_files(self, system_key):
-        return self._systems[system_key].configurations
+        l = []
+        for i in self._agents:
+            l += self._agents[i].all_configurations(system_key)
+        info("Returning configurations files: %s" % l)
+        return l
 
     def get_configuration(self, server, system, configuration_id):
         return server.agents.configuration(system, configuration_id)
