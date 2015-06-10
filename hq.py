@@ -8,8 +8,8 @@ import os
 import subprocess
 import zmq
 
-AgentClient = _hq.client.AgentClient
-AgentClientCore = _hq.client.AgentClientCore
+AgentClient = _hq.client.SnorkelAgent
+AgentCore = _hq.client.AgentCore
 
 
 class GitManager(object):
@@ -117,28 +117,56 @@ class AgentServer(object):
 
 
 class SnorkelHQ(object):
-    def __init__(self, repository_path, remote):
-        self._agents = []
-        self._servers_agents = {}
-        self._repository = Repository(repository_path, remote)
+    def __init__(self, repository_path, remote, agents_registration_queue_url='tcp://*:12345',
+                 command_queue_url='tcp://*:12346'):
+        self._agents_registration_queue_url = agents_registration_queue_url
+        self._command_queue_url = command_queue_url
+
         self._agents_registration_queue = None
+        self._command_queue = None
+
+        self._agents = set()
+        self._systems = set()
+
+        self._repository = Repository(repository_path, remote)
+
+        self._initialized = False
+
+    def _force_initialize(self):
+        if not self._initialized:
+            raise Exception("Please initialize this class with initialize() function!")
 
     def initialize(self):
         ctx = zmq.Context()
         self._agents_registration_queue = ctx.socket(zmq.REP)
-        self._agents_registration_queue.bind('tcp://*:12345')
-        self._repository.initialize()
+        self._agents_registration_queue.bind(self._agents_registration_queue_url)
 
-    def handle_registration_message(self):
-        if self._agents_registration_queue.poll(3000) != zmq.POLLIN:
+        self._command_queue = ctx.socket(zmq.REP)
+        self._command_queue.bind(self._command_queue_url)
+
+        self._repository.initialize()
+        self._initialized = True
+
+    def welcome_new_agents(self):
+        self._force_initialize()
+        while self._agents_registration_queue.poll(0) == zmq.POLLIN:
+            msg = self._agents_registration_queue.recv_json()
+            self._agents_registration_queue.send_json('ACK')
+            if msg['type'] != consts.GREETING_TYPE:
+                continue
+            self.add_agent(server_name=msg['server'], address=msg['command_queue_address'])
+
+    def handle_commands(self):
+        self._force_initialize()
+        if self._command_queue.poll(3000) != zmq.POLLIN:
             print "Didn't get message"
             return
 
-        msg = self._agents_registration_queue.recv_json()
-        self._agents_registration_queue.send_json('ACK')
-        if msg['type'] != consts.GREETING_TYPE:
-            return
-        self.add_agent(server_name=msg['server'], address=msg['command_queue_address'])
+        msg = self._command_queue.recv_json()
+        if msg['type'] == consts.GET_ALL_SYSTEMS:
+            pass
+        else:
+            self._command_queue.send_json('GOT_BAD_COMMAND')
 
     def get_system(self):
         systems = []
@@ -149,14 +177,26 @@ class SnorkelHQ(object):
     def get_server_list(self, system=None):
         return [agent.server for agent in self._agents if system and system in agent.systems]
 
-    def get_configuration_files(self, server, system):
-        return self._servers_agents[server].all_configurations(system)
+    def get_configuration_files(self, system):
+        return system.get_configuration_files()
 
     def get_configuration(self, server, system, configuration_id):
-        return self._servers_agents[server].configuration(system, configuration_id)
+        return server.agents.configuration(system, configuration_id)
 
     def add_agent(self, server_name, address):
         agent = AgentServer(server_name, address)
         agent.initialize()
         self._agents.append(agent)
         self._servers_agents[agent.server] = agent
+
+
+class SnorkelHQRunner(object):
+    def __init__(self, repository_path, remote):
+        self._snorkel_hq = SnorkelHQ(repository_path, remote)
+
+    def start(self):
+        self._snorkel_hq.initialize()
+        while True:
+            self._snorkel_hq.welcome_new_agents()
+            self._snorkel_hq.handle_commands()
+
