@@ -1,3 +1,6 @@
+import logbook
+from logbook import warn, info
+
 __author__ = 'code-museum'
 
 import _hq
@@ -154,12 +157,19 @@ class SnorkelHQ(object):
             self._agents_registration_queue.send_json('ACK')
             if msg['type'] != consts.GREETING_TYPE:
                 continue
+            info("Hey! it's a new agent!")
             self.add_agent(server_name=msg['server'], address=msg['command_queue_address'])
+
+    def add_agent(self, server_name, address):
+        agent = AgentServer(server_name, address)
+        agent.initialize()
+        self._agents.add(agent)
+        self._systems.add(agent.systems)
 
     def handle_commands(self):
         self._force_initialize()
         if self._command_queue.poll(3000) != zmq.POLLIN:
-            print "Didn't get message"
+            warn("Didn't get message")
             return
 
         msg = self._command_queue.recv_json()
@@ -182,12 +192,6 @@ class SnorkelHQ(object):
 
     def get_configuration(self, server, system, configuration_id):
         return server.agents.configuration(system, configuration_id)
-
-    def add_agent(self, server_name, address):
-        agent = AgentServer(server_name, address)
-        agent.initialize()
-        self._agents.append(agent)
-        self._servers_agents[agent.server] = agent
 
 
 class SnorkelHQRunner(object):
