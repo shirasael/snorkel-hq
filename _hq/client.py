@@ -94,7 +94,7 @@ class SnorkelAgent(object):
             return
 
         msg = self._command_queue.recv_json()
-        if msg['type'] == consts.GET_SYSTEM_TYPE:
+        if msg['type'] == consts.GET_SYSTEMS_MESSAGE:
             (success, value) = self._client_core.systems()
             self._command_queue.send_json({'success': success, 'value': value})
         elif msg['type'] == consts.GET_ALL_CONFIGURATIONS_TYPE:

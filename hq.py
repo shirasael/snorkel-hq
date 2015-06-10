@@ -1,5 +1,5 @@
 import logbook
-from logbook import warn, info
+from logbook import warn, info, debug
 
 __author__ = 'code-museum'
 
@@ -88,7 +88,7 @@ class AgentServer(object):
 
     @property
     def systems(self):
-        self._command_queue.send_json({'type': consts.GET_SYSTEM_TYPE})
+        self._command_queue.send_json({'type': consts.GET_SYSTEMS_MESSAGE})
         answer = self._command_queue.recv_json()
         if answer['success']:
             return answer['value']
@@ -163,13 +163,14 @@ class SnorkelHQ(object):
     def add_agent(self, server_name, address):
         agent = AgentServer(server_name, address)
         agent.initialize()
-        self._agents.add(agent)
-        self._systems.add(agent.systems)
+        self._agents[server_name] = agent
+        for system in agent.systems:
+            self._systems[system] = {'name': system, 'agent': agent}
 
     def handle_commands(self):
         self._force_initialize()
         if self._command_queue.poll(3000) != zmq.POLLIN:
-            warn("Didn't get message")
+            debug("Didn't get message")
             return
 
         msg = self._command_queue.recv_json()
