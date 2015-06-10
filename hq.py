@@ -192,7 +192,7 @@ class SnorkelHQ(object):
             info("Got command for getting all systems")
             answer = self.get_all_systems_names()
             self._command_queue.send_json(answer)
-        elif msg['type'] == consts.GET_ALL_CONFIGURATIONS_MESSAGE:
+        elif msg['type'] == 'get-all-configurations':
             return self.get_configuration_files(msg['value'])
         elif msg['type'] == consts.DEPLOY_CONFIGURATION_MESSAGE:
             self.deploy_configuration(msg['value'])
@@ -233,4 +233,3 @@ class SnorkelHQRunner(object):
         while True:
             self._snorkel_hq.welcome_new_agents()
             self._snorkel_hq.handle_commands()
-
