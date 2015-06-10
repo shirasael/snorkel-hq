@@ -69,9 +69,18 @@ class Repository(object):
 
 
 class Configurations(object):
-    def __init__(self, id, content):
+    def __init__(self, id, name, content):
         self.id = id
+        self.name = name
         self.content = content
+
+
+class System(object):
+    def __init__(self, name, id, configurations=None, agents=None):
+        self.agents = agents if agents is not None else []
+        self.configurations = configurations if configurations is not None else []
+        self.id = id
+        self.name = name
 
 
 class AgentServer(object):
@@ -95,7 +104,7 @@ class AgentServer(object):
         return []
 
     def all_configurations(self, system):
-        self._command_queue.send_json({'type': consts.GET_ALL_CONFIGURATIONS_TYPE, 'system': system})
+        self._command_queue.send_json({'type': consts.GET_ALL_CONFIGURATIONS_MESSAGE, 'system': system})
         answer = self._command_queue.recv_json()
         if answer['success']:
             return answer['value']
@@ -175,7 +184,9 @@ class SnorkelHQ(object):
 
         msg = self._command_queue.recv_json()
         if msg['type'] == consts.GET_ALL_SYSTEMS:
-            pass
+            return self.get_all_sysatems_names()
+        elif msg['type'] == consts.GET_ALL_CONFIGURATIONS_MESSAGE:
+            return self.get_configuration_files(msg['value'])
         elif msg['type'] == consts.DEPLOY_CONFIGURATION_MESSAGE:
             self.deploy_configuration(msg['value'])
         else:
@@ -190,8 +201,8 @@ class SnorkelHQ(object):
     def get_server_list(self, system=None):
         return [agent.server for agent in self._agents if system and system in agent.systems]
 
-    def get_configuration_files(self, system):
-        return system.get_configuration_files()
+    def get_configuration_files(self, system_key):
+        return self._systems[system_key].configurations
 
     def get_configuration(self, server, system, configuration_id):
         return server.agents.configuration(system, configuration_id)
@@ -200,6 +211,10 @@ class SnorkelHQ(object):
         system = self._systems[values['system_key']]
         for agent in system.agents:
             agent.update_configuration()
+        return True
+
+    def get_all_sysatems_names(self):
+        return self._systems.keys()
 
 
 class SnorkelHQRunner(object):
