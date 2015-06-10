@@ -1,5 +1,4 @@
-import logbook
-from logbook import warn, info, debug
+from logbook import info, debug
 
 __author__ = 'code-museum'
 

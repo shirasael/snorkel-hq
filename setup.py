@@ -2,7 +2,7 @@ __author__ = 'code-museum'
 
 from setuptools import setup
 
-REQUIREMENTS = ['pyzmq']
+REQUIREMENTS = ['pyzmq', 'logbook']
 
 setup(
     name='sonrkel-hq',
