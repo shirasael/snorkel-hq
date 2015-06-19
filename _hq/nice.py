@@ -85,7 +85,7 @@ class CommandsHandler(object):
         self._command_handling_socket = SafeServerZMQSocket(zmq.Context(), ZMQ_REQUEST, command_handling_url)
         self._massage_type_to_handlers = {}
 
-    def add_massage_handler(self, command_type, handler):
+    def add_command_handler(self, command_type, handler):
         self._massage_type_to_handlers[command_type] = handler
 
     def handle_commands(self):
