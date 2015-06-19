@@ -4,7 +4,7 @@ import zmq
 from logbook import info, error
 from collections import defaultdict
 
-from _hq.nice import zmq_poll, ZMQ_REQUEST
+from _hq.nice import zmq_poll, ZMQ_REQUEST, SafeClientZMQSocket
 from _hq.components import Repository
 from _hq.consts import PUT_CONFIGURATION_COMMAND
 from _hq.agent import AgentCommander, SnorkelAgent
@@ -13,26 +13,13 @@ from _hq.agent import AgentCommander, SnorkelAgent
 class SnorkelHQCommander(object):
     def __init__(self, hq_server_name, command_queue_url='tcp://%s:12346'):
         self._command_queue_url = command_queue_url
-        self._command_queue = None
+        self._command_queue = SafeClientZMQSocket(zmq.Context(), ZMQ_REQUEST, command_queue_url % hq_server_name)
         self._hq_server = hq_server_name
-        self._initialized = False
-
-    def initialize(self):
-        ctx = zmq.Context()
-        self._command_queue = ctx.socket(ZMQ_REQUEST)
-        self._command_queue.connect(self._command_queue_url % self._hq_server)
-        self._initialized = True
-
-    def _force_initialize(self):
-        if not self._initialized:
-            raise Exception("Please initialize this class with initialize() function!")
 
     def get_systems(self):
-        self._force_initialize()
         return self.command(SnorkelHQ.GET_SYSTEMS)
 
     def get_servers(self, system=None):
-        self._force_initialize()
         return self.command(SnorkelHQ.GET_SERVERS, system=system)
 
     # def get_all_configurations(self, system):
@@ -52,8 +39,8 @@ class SnorkelHQCommander(object):
         self._command_queue.send_json(command)
         if not zmq_poll(self._command_queue):
             error("Timeout while waiting for answer to command: %s" % type)
-            self.initialize()
-        return self._command_queue.recv_json()
+            self._command_queue.initialize()
+        return self._command_queue.receive_json()
 
 
 class SnorkelHQ(object):
