@@ -123,17 +123,7 @@ class SnorkelHQ(object):
         self._agents[hostname] = agent
         for i, system in enumerate(agent.get_systems()):
             self._systems[system][hostname] = i
-
-        # self._systems.append(agent.get_systems())
-        # info("Add agent for %s with systems: %s" % (server_name, agent.systems))
-        # for system in agent.systems:
-        #     self._systems[system] = {'name': system, 'agent': agent}
-
-    # def get_system(self):
-    #     systems = []
-    #     for agent in self._agents:
-    #         systems += agent.systems
-    #     return systems
+        info("Agent running on %s with systems %s was added" % (hostname, agent.get_systems()))
 
     def get_server_list(self, system=None):
         return [agent.server for agent in self._agents if system and system in agent.systems]
