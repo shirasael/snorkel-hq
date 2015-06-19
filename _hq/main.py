@@ -33,22 +33,26 @@ class SnorkelHQCommander(object):
 
     def get_servers(self, system=None):
         self._force_initialize()
-        return self.command(SnorkelHQ.GET_SERVERS, system)
+        return self.command(SnorkelHQ.GET_SERVERS, system=system)
 
-    def get_all_configurations(self, system):
-        self._force_initialize()
-        return self.command('get-all-configurations', value=system)
+    # def get_all_configurations(self, system):
+    #     self._force_initialize()
+    #     return self.command('get-all-configurations', value=system)
+    #
+    # def deploy_configuration(self, server, system, file_name, config):
+    #     self._force_initialize()
+    #     return self.command(PUT_CONFIGURATION_COMMAND,
+    #                         value={'server': server, 'system': system, 'file_name': file_name, 'config': config})
 
-    def deploy_configuration(self, server, system, file_name, config):
-        self._force_initialize()
-        return self.command(PUT_CONFIGURATION_COMMAND,
-                            value={'server': server, 'system': system, 'file_name': file_name, 'config': config})
+    def command(self, command_type, **values):
+        command = {'type': command_type}
+        if values:
+            command.update(values)
 
-    def command(self, type, value=None):
-        self._command_queue.send_json({'type': type, 'value': value})
+        self._command_queue.send_json(command)
         if not zmq_poll(self._command_queue):
+            error("Timeout while waiting for answer to command: %s" % type)
             self.initialize()
-            raise Exception('Timeout after not getting answer for command %s' % type)
         return self._command_queue.recv_json()
 
 
@@ -117,10 +121,12 @@ class SnorkelHQ(object):
         info("Agent running on %s with systems %s was added" % (hostname, agent.get_systems()))
 
     def get_systems(self):
+        info("get_systems called, returning: %s" % self._systems.keys())
         return self._systems.keys()
 
     def get_servers(self, system=None):
-        return [hostname for hostname, agent in self._agents.iteritems() if not system or system in agent.systems]
+        info("get_servers called with parameter system=%s" % repr(system))
+        return [hostname for hostname, agent in self._agents.iteritems() if not system or hostname in self._systems[system]]
 
     def _force_initialize(self):
         if not self._initialized:
