@@ -31,6 +31,10 @@ class SnorkelHQCommander(object):
         self._force_initialize()
         return self.command(SnorkelHQ.GET_SYSTEMS)
 
+    def get_servers(self, system=None):
+        self._force_initialize()
+        return self.command(SnorkelHQ.GET_SERVERS, system)
+
     def get_all_configurations(self, system):
         self._force_initialize()
         return self.command('get-all-configurations', value=system)
@@ -50,6 +54,7 @@ class SnorkelHQCommander(object):
 
 class SnorkelHQ(object):
     GET_SYSTEMS = 'get-systems'
+    GET_SERVERS = 'get-servers'
 
     def __init__(self, repository_path, remote, agents_registration_queue_url='tcp://*:12345',
                  command_queue_url='tcp://*:12346'):
@@ -89,6 +94,10 @@ class SnorkelHQ(object):
         if msg['type'] == self.GET_SYSTEMS:
             info("Got command for getting all systems")
             answer = self.get_systems()
+        elif msg['type'] == self.GET_SERVERS:
+            info("Got command for getting all servers (host names)")
+            system = msg['system'] if 'system' in msg else None
+            answer = self.get_servers(system)
         elif msg['type'] == 'get-all-configurations':
             info("Got command for getting configurations")
             answer = self.get_configuration_files(msg['value'])
@@ -99,8 +108,19 @@ class SnorkelHQ(object):
 
         self._command_queue.send_json(answer)
 
+    def add_agent(self, hostname, address):
+        agent = AgentCommander(address, hostname)
+        agent.initialize()
+        self._agents[hostname] = agent
+        for i, system in enumerate(agent.get_systems()):
+            self._systems[system][hostname] = i
+        info("Agent running on %s with systems %s was added" % (hostname, agent.get_systems()))
+
     def get_systems(self):
         return self._systems.keys()
+
+    def get_servers(self, system=None):
+        return [hostname for hostname, agent in self._agents.iteritems() if not system or system in agent.systems]
 
     def _force_initialize(self):
         if not self._initialized:
@@ -116,17 +136,6 @@ class SnorkelHQ(object):
 
         self._repository.initialize()
         self._initialized = True
-
-    def add_agent(self, hostname, address):
-        agent = AgentCommander(address, hostname)
-        agent.initialize()
-        self._agents[hostname] = agent
-        for i, system in enumerate(agent.get_systems()):
-            self._systems[system][hostname] = i
-        info("Agent running on %s with systems %s was added" % (hostname, agent.get_systems()))
-
-    def get_server_list(self, system=None):
-        return [agent.server for agent in self._agents if system and system in agent.systems]
 
     def get_configuration_files(self, system_key):
         l = []
