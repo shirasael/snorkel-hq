@@ -75,7 +75,7 @@ class SnorkelHQ(object):
             if msg['type'] != SnorkelAgent.GREETING_MSG:
                 continue
             info("Hey! it's a new agent!")
-            self.add_agent(server_name=msg['server'], address=msg['command_queue_address'])
+            self.add_agent(hostname=msg['hostname'], address=msg['command_queue_address'])
 
     def handle_commands(self):
         self._force_initialize()
@@ -117,12 +117,12 @@ class SnorkelHQ(object):
         self._repository.initialize()
         self._initialized = True
 
-    def add_agent(self, server_name, address):
-        agent = AgentCommander(address)
+    def add_agent(self, hostname, address):
+        agent = AgentCommander(address, hostname)
         agent.initialize()
-        self._agents[server_name] = agent
+        self._agents[hostname] = agent
         for i, system in enumerate(agent.get_systems()):
-            self._systems[system][server_name] = i
+            self._systems[system][hostname] = i
 
         # self._systems.append(agent.get_systems())
         # info("Add agent for %s with systems: %s" % (server_name, agent.systems))

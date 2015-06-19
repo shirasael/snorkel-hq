@@ -8,8 +8,9 @@ from _hq.nice import ZMQ_REQUEST, ZMQ_REPLY, ZMQ_POLL_IN, zmq_poll
 
 
 class AgentCommander(object):
-    def __init__(self, address):
+    def __init__(self, address, hostname):
         self._address = address
+        self._hostname = hostname
         self._command_queue = None
 
     def initialize(self):
@@ -130,7 +131,7 @@ class SnorkelAgent(object):
     def say_hi(self):
         info('Saying hey to: %s, talk to me in %s' % (self._registration_queue_url, self._command_queue_url))
         self._registration_queue.send_json({'type': self.GREETING_MSG,
-                                            'server': self._agent_hostname,
+                                            'hostname': self._agent_hostname,
                                             'command_queue_address': self._command_queue_url})
         self._registration_queue.recv_json()
 
