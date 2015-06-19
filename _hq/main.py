@@ -2,8 +2,9 @@ __author__ = 'code-museum'
 
 import zmq
 from logbook import info, error
+from collections import defaultdict
 
-from _hq.nice import zmq_poll
+from _hq.nice import zmq_poll, ZMQ_REQUEST
 from _hq.components import Repository
 from _hq.consts import PUT_CONFIGURATION_COMMAND
 from _hq.agent import AgentCommander, SnorkelAgent
@@ -18,7 +19,7 @@ class SnorkelHQCommander(object):
 
     def initialize(self):
         ctx = zmq.Context()
-        self._command_queue = ctx.socket(zmq.REQ)
+        self._command_queue = ctx.socket(ZMQ_REQUEST)
         self._command_queue.connect(self._command_queue_url % self._hq_server)
         self._initialized = True
 
@@ -28,7 +29,7 @@ class SnorkelHQCommander(object):
 
     def get_systems(self):
         self._force_initialize()
-        return self.command('get-all-systems')
+        return self.command(SnorkelHQ.GET_SYSTEMS)
 
     def get_all_configurations(self, system):
         self._force_initialize()
@@ -48,6 +49,8 @@ class SnorkelHQCommander(object):
 
 
 class SnorkelHQ(object):
+    GET_SYSTEMS = 'get-systems'
+
     def __init__(self, repository_path, remote, agents_registration_queue_url='tcp://*:12345',
                  command_queue_url='tcp://*:12346'):
         self._agents_registration_queue_url = agents_registration_queue_url
@@ -57,7 +60,7 @@ class SnorkelHQ(object):
         self._command_queue = None
 
         self._agents = {}
-        self._systems = {}
+        self._systems = defaultdict(dict)
 
         self._repository = Repository(repository_path, remote)
 
@@ -83,9 +86,9 @@ class SnorkelHQ(object):
         msg = self._command_queue.recv_json()
 
         answer = 'Failure'
-        if msg['type'] == 'get-all-systems':
+        if msg['type'] == self.GET_SYSTEMS:
             info("Got command for getting all systems")
-            answer = self.get_all_systems_names()
+            answer = self.get_systems()
         elif msg['type'] == 'get-all-configurations':
             info("Got command for getting configurations")
             answer = self.get_configuration_files(msg['value'])
@@ -95,6 +98,9 @@ class SnorkelHQ(object):
             self._command_queue.send_json('got-bad-command')
 
         self._command_queue.send_json(answer)
+
+    def get_systems(self):
+        return self._systems.keys()
 
     def _force_initialize(self):
         if not self._initialized:
@@ -115,15 +121,19 @@ class SnorkelHQ(object):
         agent = AgentCommander(address)
         agent.initialize()
         self._agents[server_name] = agent
+        for i, system in enumerate(agent.get_systems()):
+            self._systems[system][server_name] = i
+
+        # self._systems.append(agent.get_systems())
         # info("Add agent for %s with systems: %s" % (server_name, agent.systems))
         # for system in agent.systems:
         #     self._systems[system] = {'name': system, 'agent': agent}
 
-    def get_system(self):
-        systems = []
-        for agent in self._agents:
-            systems += agent.systems
-        return systems
+    # def get_system(self):
+    #     systems = []
+    #     for agent in self._agents:
+    #         systems += agent.systems
+    #     return systems
 
     def get_server_list(self, system=None):
         return [agent.server for agent in self._agents if system and system in agent.systems]
@@ -144,5 +154,4 @@ class SnorkelHQ(object):
             agent.update_configuration()
         return True
 
-    def get_all_systems_names(self):
-        return self._systems.keys()
+
