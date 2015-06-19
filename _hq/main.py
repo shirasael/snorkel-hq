@@ -1,12 +1,12 @@
 __author__ = 'code-museum'
 
+from collections import defaultdict
+
 import zmq
 from logbook import info, error
-from collections import defaultdict
 
 from _hq.nice import zmq_poll, ZMQ_REQUEST, SafeClientZMQSocket
 from _hq.components import Repository
-from _hq.consts import PUT_CONFIGURATION_COMMAND
 from _hq.agent import AgentCommander, SnorkelAgent
 
 
@@ -113,7 +113,8 @@ class SnorkelHQ(object):
 
     def get_servers(self, system=None):
         info("get_servers called with parameter system=%s" % repr(system))
-        return [hostname for hostname, agent in self._agents.iteritems() if not system or hostname in self._systems[system]]
+        return [hostname for hostname, agent in self._agents.iteritems() if
+                not system or hostname in self._systems[system]]
 
     def _force_initialize(self):
         if not self._initialized:
@@ -145,5 +146,3 @@ class SnorkelHQ(object):
         for agent in system.agents:
             agent.update_configuration()
         return True
-
-
