@@ -2,6 +2,7 @@ __author__ = 'code-museum'
 
 from datetime import datetime, timedelta
 
+
 class SnorkelAgentRunner(object):
     def __init__(self, agent):
         self._agent = agent

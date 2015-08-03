@@ -5,7 +5,7 @@ from collections import defaultdict
 import zmq
 from logbook import info, error
 
-from _hq.nice import zmq_poll, ZMQ_REQUEST, SafeClientZMQSocket
+from _hq.nice import zmq_poll, ZMQ_REQUEST, SafeClientZMQSocket, ZMQ_REPLY
 from _hq.components import Repository
 from _hq.agent import AgentCommander, SnorkelAgent
 
@@ -122,10 +122,10 @@ class SnorkelHQ(object):
 
     def initialize(self):
         ctx = zmq.Context()
-        self._agents_registration_queue = ctx.socket(zmq.REP)
+        self._agents_registration_queue = ctx.socket(ZMQ_REPLY)
         self._agents_registration_queue.bind(self._agents_registration_queue_url)
 
-        self._command_queue = ctx.socket(zmq.REP)
+        self._command_queue = ctx.socket(ZMQ_REPLY)
         self._command_queue.bind(self._command_queue_url)
 
         self._repository.initialize()
