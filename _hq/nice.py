@@ -3,9 +3,10 @@ __author__ = 'code-museum'
 import zmq
 from logbook import error, info
 
-ZMQ_REQUEST = zmq.REQ
-ZMQ_REPLY = zmq.REP
-ZMQ_POLL_IN = zmq.POLLIN
+ZMQ_REQUEST = getattr(zmq, 'REQ')
+ZMQ_REPLY = getattr(zmq, 'REP')
+ZMQ_POLL_IN = getattr(zmq, 'POLLIN')
+
 
 def zmq_poll(socket, timeout=3000):
     return socket.poll(timeout) == ZMQ_POLL_IN
@@ -68,7 +69,7 @@ class Commander(object):
             self._command_socket.initialize()
 
         answer = self._command_socket.receive_json()
-        if self.STATUS_FIELD not in answer or self.VALUE_FIELD not in answer:
+        if CommandsHandler.STATUS_FIELD not in answer or CommandsHandler.VALUE_FIELD not in answer:
             error("Answer format is wrong, use 'status' and 'value' attributes")
             return None
         if not answer['success']:
