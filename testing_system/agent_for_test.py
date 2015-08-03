@@ -37,7 +37,7 @@ class SnorkelAgentCore(AgentCore):
         open(self.configurations[configuration_id], 'wb').write(configuration_content)
         return True, None
 
-    def _get_configuration(self, system_id, configuration_id):
+    def _load_configuration(self, system_id, configuration_id):
         if system_id < 0 or system_id > len(self.systems) - 1:
             error("I don't know system id %s, is it nice?" % system_id)
             return False, None
