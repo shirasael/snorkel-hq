@@ -22,10 +22,9 @@ class SnorkelHQCommander(object):
     def get_servers(self, system=None):
         return self.command(SnorkelHQ.GET_SERVERS, system=system)
 
-    # def get_all_configurations(self, system):
-    #     self._force_initialize()
-    #     return self.command('get-all-configurations', value=system)
-    #
+    def get_configurations(self, system=None):
+        return self.command(SnorkelHQ.GET_CONFIGURATIONS, system=system)
+
     # def deploy_configuration(self, server, system, file_name, config):
     #     self._force_initialize()
     #     return self.command(PUT_CONFIGURATION_COMMAND,
@@ -46,6 +45,7 @@ class SnorkelHQCommander(object):
 class SnorkelHQ(object):
     GET_SYSTEMS = 'get-systems'
     GET_SERVERS = 'get-servers'
+    GET_CONFIGURATIONS = 'get-configurations'
 
     def __init__(self, repository_path, remote, agents_registration_queue_url='tcp://*:12345',
                  command_queue_url='tcp://*:12346'):
@@ -70,7 +70,7 @@ class SnorkelHQ(object):
             self._agents_registration_queue.send_json('ACK')
             if msg['type'] != SnorkelAgent.GREETING_MSG:
                 continue
-            info("Hey! it's a new agent!")
+            info("Hey! it's an agent!")
             self.add_agent(hostname=msg['hostname'], address=msg['command_queue_address'])
 
     def handle_commands(self):
@@ -89,9 +89,11 @@ class SnorkelHQ(object):
             info("Got command for getting all servers (host names)")
             system = msg['system'] if 'system' in msg else None
             answer = self.get_servers(system)
-        elif msg['type'] == 'get-all-configurations':
+        elif msg['type'] == self.GET_CONFIGURATIONS:
+            info("Got command for getting configurations of system")
             info("Got command for getting configurations")
-            answer = self.get_configuration_files(msg['value'])
+            system = msg['system'] if 'system' in msg else None
+            answer = self.get_configuration_files(system)
         elif msg['type'] == 'deploy-configuration':
             self.deploy_configuration(msg['value'])
         else:
@@ -133,8 +135,9 @@ class SnorkelHQ(object):
 
     def get_configuration_files(self, system_key):
         l = []
-        for i in self._agents:
-            l += self._agents[i].all_configurations(system_key)
+        print self._systems[system_key]
+        for hostname, agent in self._agents.iteritems():
+            l += agent.get_configurations(self._systems[system_key][hostname])
         info("Returning configurations files: %s" % l)
         return l
 
