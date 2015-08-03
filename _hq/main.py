@@ -144,20 +144,19 @@ class SnorkelHQ(object):
         self._initialized = True
 
     def get_configurations(self, system_key):
-        l = []
-        print self._agents
+        configurations = {}
+
         for hostname, agent in self._agents.iteritems():
-            info("Getting configurations from agent %s with hostname %s" % (agent, hostname))
-            l += agent.get_configurations(self._systems[system_key][hostname])
-        info("Returning configurations files: %s" % l)
-        return l
+            info("Getting configurations from agent with hostname %s" % hostname)
+            configurations[hostname] = agent.get_configurations(self._systems[system_key][hostname])
+        info("Returning configurations files: %s" % configurations)
+        return configurations
 
     def load_configuration(self, system, configuration):
         l = []
         for hostname, agent in self._agents.iteritems():
             bla = self.get_configurations(system)
-            l.append(agent.load_configuration(self._systems[system][hostname], bla.index(configuration)))
-        print l
+            l.append(agent.load_configuration(self._systems[system][hostname], bla[hostname].index(configuration)))
         return l
 
     # def get_configuration(self, server, system, configuration_id):
