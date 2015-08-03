@@ -22,11 +22,11 @@ class SnorkelHQCommander(object):
     def get_servers(self, system=None):
         return self.command(SnorkelHQ.GET_SERVERS, system=system)
 
-    def get_configurations(self, system=None):
-        return self.command(SnorkelHQ.GET_CONFIGURATIONS, system=system)
+    def get_configurations(self, agent=None, system=None):
+        return self.command(SnorkelHQ.GET_CONFIGURATIONS, agent=agent, system=system)
 
-    def load_configuration(self, system=None, configuration=None):
-        return self.command(SnorkelHQ.LOAD_CONFIGURATION, system=system, configuration=configuration)
+    def load_configuration(self, agent=None, system=None, configuration=None):
+        return self.command(SnorkelHQ.LOAD_CONFIGURATION, agent=agent, system=system, configuration=configuration)
 
     # def deploy_configuration(self, server, system, file_name, config):
     #     self._force_initialize()
@@ -95,15 +95,17 @@ class SnorkelHQ(object):
             answer = self.get_servers(system)
         elif msg['type'] == self.GET_CONFIGURATIONS:
             info("Got command for getting configurations of system")
+            agent = msg['agent'] if 'agent' in msg else None
             system = msg['system'] if 'system' in msg else None
-            answer = self.get_configurations(system)
+            answer = self.get_configurations(agent, system)
         elif msg['type'] == 'deploy-configuration':
             self.deploy_configuration(msg['value'])
         elif msg['type'] == self.LOAD_CONFIGURATION:
             info("Got command for load configuration of system")
+            agent = msg['agent'] if 'agent' in msg else None
             system = msg['system'] if 'system' in msg else None
             configuration = msg['configuration'] if 'configuration' in msg else None
-            answer = self.load_configuration(system, configuration)
+            answer = self.load_configuration(agent, system, configuration)
         else:
             self._command_queue.send_json('got-bad-command')
 
@@ -143,24 +145,13 @@ class SnorkelHQ(object):
         self._repository.initialize()
         self._initialized = True
 
-    def get_configurations(self, system_key):
-        configurations = {}
+    def get_configurations(self, agent, system):
+        info("Returning configurations paths")
+        return self._agents[agent].get_configurations(self._systems[system][agent])
 
-        for hostname, agent in self._agents.iteritems():
-            info("Getting configurations from agent with hostname %s" % hostname)
-            configurations[hostname] = agent.get_configurations(self._systems[system_key][hostname])
-        info("Returning configurations files: %s" % configurations)
-        return configurations
-
-    def load_configuration(self, system, configuration):
-        l = []
-        for hostname, agent in self._agents.iteritems():
-            bla = self.get_configurations(system)
-            l.append(agent.load_configuration(self._systems[system][hostname], bla[hostname].index(configuration)))
-        return l
-
-    # def get_configuration(self, server, system, configuration_id):
-    #     return server.agents.configuration(system, configuration_id)
+    def load_configuration(self, agent, system, configuration):
+        configuration_key = self.get_configurations(agent, system).index(configuration)
+        return self._agents[agent].load_configuration(self._systems[system][agent], configuration_key)
 
     def deploy_configuration(self, values):
         system = self._systems[values['system_key']]
