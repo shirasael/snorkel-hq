@@ -35,6 +35,13 @@ class Repository(object):
         self._git_manager = GitManager(self._repository_path)
         self._git_manager.pull()
 
+        snorkel_metadata_dir = os.path.join(self._repository_path, '.snorkel')
+        if not os.path.exists(snorkel_metadata_dir):
+            os.mkdir(snorkel_metadata_dir)
+            open(os.path.join(snorkel_metadata_dir, 'snorkel.conf'), 'wb').write('')
+            self._git_manager.commit(self._repository_path, 'creating .snorkel dir')
+            self._git_manager.push('origin', 'master')
+
     def create_agent_dir(self, agent):
         agent_dir_path = os.path.join(self._repository_path, agent.server)
         if not os.path.exists(agent_dir_path):
@@ -67,8 +74,8 @@ class GitManager(object):
     def pull(self):
         self.run_git_command(['pull'], self._path)
 
-    def push(self):
-        self.run_git_command(['push'], self._path)
+    def push(self, remote, branch):
+        self.run_git_command(['push', remote, branch], self._path)
 
     def commit(self, path, msg):
         self.run_git_command(['add', path], self._path)

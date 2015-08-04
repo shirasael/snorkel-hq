@@ -56,6 +56,14 @@ class SnorkelHQ(CommandsHandler):
 
         self._initialized = False
 
+    def initialize(self):
+        ctx = zmq.Context()
+        self._agents_registration_queue = ctx.socket(ZMQ_REPLY)
+        self._agents_registration_queue.bind(self._agents_registration_queue_url)
+
+        self._repository.initialize()
+        self._initialized = True
+
     def welcome_new_agents(self):
         self._force_initialize()
         while zmq_poll(self._agents_registration_queue, 0):
@@ -89,14 +97,6 @@ class SnorkelHQ(CommandsHandler):
     def _force_initialize(self):
         if not self._initialized:
             raise Exception("Please initialize this class with initialize() function!")
-
-    def initialize(self):
-        ctx = zmq.Context()
-        self._agents_registration_queue = ctx.socket(ZMQ_REPLY)
-        self._agents_registration_queue.bind(self._agents_registration_queue_url)
-
-        self._repository.initialize()
-        self._initialized = True
 
     def get_configurations(self, agent, system):
         info("Returning configurations paths")
