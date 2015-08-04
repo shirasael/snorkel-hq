@@ -1,3 +1,4 @@
+import base64
 import os
 import subprocess
 from logbook import info
@@ -47,10 +48,23 @@ class Repository(object):
     def get_systems(self):
         systems = set()
         for agent in filter(lambda x: not x.startswith('.'), os.listdir(self._repository_path)):
-            print os.listdir(os.path.join(self._repository_path, agent))
             systems.update(os.listdir(os.path.join(self._repository_path, agent)))
-        print systems
         return list(systems)
+
+    def get_servers(self, system):
+        servers = []
+        for agent in filter(lambda x: not x.startswith('.'), os.listdir(self._repository_path)):
+            if system in os.listdir(os.path.join(self._repository_path, agent)):
+                servers.append(agent)
+        return servers
+
+    def get_configurations(self, agent, system):
+        encoded_configurations = os.listdir(os.path.join(self._repository_path, agent, system))
+        return [base64.decodestring(c) for c in encoded_configurations]
+
+    def load_configuration(self, agent, system, configuration):
+        return open(os.path.join(self._repository_path, agent, system, base64.encodestring(configuration).strip() + '.cfg'),
+                    'rb').read()
 
     def get_registered_agents(self):
         repository_dirs = os.listdir(self._repository_path)

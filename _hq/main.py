@@ -93,8 +93,9 @@ class SnorkelHQ(CommandsHandler):
 
     def get_servers(self, system=None):
         info("get_servers called with parameter system=%s" % repr(system))
-        return [hostname for hostname, agent in self._agents.iteritems() if
-                not system or hostname in self._systems[system]]
+        return self._repository.get_servers(system)
+        # return [hostname for hostname, agent in self._agents.iteritems() if
+        #         not system or hostname in self._systems[system]]
 
     def _force_initialize(self):
         if not self._initialized:
@@ -102,11 +103,13 @@ class SnorkelHQ(CommandsHandler):
 
     def get_configurations(self, agent, system):
         info("Returning configurations paths")
-        return self._agents[agent].get_configurations(self._systems[system][agent])
+        return self._repository.get_configurations(agent, system)
+        # return self._agents[agent].get_configurations(self._systems[system][agent])
 
     def load_configuration(self, agent, system, configuration):
         configuration_key = self.get_configurations(agent, system).index(configuration)
-        return self._agents[agent].load_configuration(self._systems[system][agent], configuration_key)
+        return self._repository.load_configuration(agent, system, configuration)
+        # return self._agents[agent].load_configuration(self._systems[system][agent], configuration_key)
 
     def deploy_configuration(self, values):
         system = self._systems[values['system_key']]
