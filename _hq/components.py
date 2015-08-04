@@ -39,11 +39,26 @@ class Repository(object):
         if not os.path.exists(snorkel_metadata_dir):
             os.mkdir(snorkel_metadata_dir)
             open(os.path.join(snorkel_metadata_dir, 'snorkel.conf'), 'wb').write('')
-            self._git_manager.commit(self._repository_path, 'creating .snorkel dir')
-            self._git_manager.push('origin', 'master')
+            if not self._git_manager.commit(self._repository_path, 'creating .snorkel dir'):
+                os.remove(snorkel_metadata_dir)
+            if not self._git_manager.push('origin', 'master'):
+                os.remove(snorkel_metadata_dir)
 
-    def create_agent_dir(self, agent):
-        agent_dir_path = os.path.join(self._repository_path, agent.server)
+    def get_systems(self):
+        systems = set()
+        for agent in filter(lambda x: not x.startswith('.'), os.listdir(self._repository_path)):
+            print os.listdir(os.path.join(self._repository_path, agent))
+            systems.update(os.listdir(os.path.join(self._repository_path, agent)))
+        print systems
+        return list(systems)
+
+    def get_registered_agents(self):
+        repository_dirs = os.listdir(self._repository_path)
+        agents = filter(lambda x: x != '.snorkel', repository_dirs)
+        return agents
+
+    def create_agent_dir(self, hostname):
+        agent_dir_path = os.path.join(self._repository_path, hostname)
         if not os.path.exists(agent_dir_path):
             os.mkdir(agent_dir_path)
 
@@ -69,14 +84,15 @@ class GitManager(object):
     def run_git_command(args=None, repo_path=None):
         info('Run git command: "%s" from dir: %s' % (' '.join(['git'] + args), repo_path))
         p = subprocess.Popen(['git'] + args, cwd=repo_path)
-        p.wait()
+        return p.wait() == 0
 
     def pull(self):
-        self.run_git_command(['pull'], self._path)
+        return self.run_git_command(['pull'], self._path)
 
     def push(self, remote, branch):
-        self.run_git_command(['push', remote, branch], self._path)
+        return self.run_git_command(['push', remote, branch], self._path)
 
     def commit(self, path, msg):
-        self.run_git_command(['add', path], self._path)
-        self.run_git_command(['commit', '-m', msg], self._path)
+        if not self.run_git_command(['add', path], self._path):
+            return False
+        return self.run_git_command(['commit', '-m', msg], self._path)

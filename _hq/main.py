@@ -80,6 +80,7 @@ class SnorkelHQ(CommandsHandler):
             return
         agent = AgentCommander(address, hostname)
         agent.initialize()
+        self._repository.create_agent_dir(hostname)
         self._agents[hostname] = agent
         for i, system in enumerate(agent.get_systems()):
             self._systems[system][hostname] = i
@@ -87,7 +88,8 @@ class SnorkelHQ(CommandsHandler):
 
     def get_systems(self):
         info("get_systems called, returning: %s" % self._systems.keys())
-        return self._systems.keys()
+        # return self._systems.keys()
+        return self._repository.get_systems()
 
     def get_servers(self, system=None):
         info("get_servers called with parameter system=%s" % repr(system))
