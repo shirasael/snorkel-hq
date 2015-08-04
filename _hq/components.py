@@ -63,8 +63,23 @@ class Repository(object):
         return [base64.decodestring(c) for c in encoded_configurations]
 
     def load_configuration(self, agent, system, configuration):
-        return open(os.path.join(self._repository_path, agent, system, base64.encodestring(configuration).strip() + '.cfg'),
-                    'rb').read()
+        return open(
+            os.path.join(self._repository_path, agent, system, base64.encodestring(configuration).strip() + '.cfg'),
+            'rb').read()
+
+    def update_configuration(self, agent, system, configuration, content):
+        open(os.path.join(self._repository_path, agent, system, base64.encodestring(configuration).strip() + '.cfg'),
+             'wb').write(content)
+        if self._commit_configuration_update(agent, system, configuration):
+            self._git_manager.push('origin', 'master')
+
+    def _commit_configuration_update(self, agent, system, configuration):
+        commit_message = self._create_commit_msg_for_configuration_update(agent, system, configuration)
+        return self._git_manager.commit(self._repository_path, commit_message)
+
+    @staticmethod
+    def _create_commit_msg_for_configuration_update(agent, system, configuration):
+        return 'update configuration: "%s" of system: %s on agent: %s' % (configuration, system, agent)
 
     def get_registered_agents(self):
         repository_dirs = os.listdir(self._repository_path)

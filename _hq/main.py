@@ -107,9 +107,12 @@ class SnorkelHQ(CommandsHandler):
         # return self._agents[agent].get_configurations(self._systems[system][agent])
 
     def load_configuration(self, agent, system, configuration):
-        configuration_key = self.get_configurations(agent, system).index(configuration)
         return self._repository.load_configuration(agent, system, configuration)
+        # configuration_key = self.get_configurations(agent, system).index(configuration)
         # return self._agents[agent].load_configuration(self._systems[system][agent], configuration_key)
+
+    def update_configuration(self, agent, system, configuration, content):
+        self._repository.update_configuration(agent, system, configuration, content)
 
     def deploy_configuration(self, values):
         system = self._systems[values['system_key']]
