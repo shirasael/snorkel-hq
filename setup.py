@@ -7,8 +7,7 @@ REQUIREMENTS = ['pyzmq', 'logbook']
 setup(
     name='sonrkel-hq',
     version='0.0.1',
-    py_modules=['hq'],
-    packages=['_hq'],
+    packages=['hq'],
     install_requires=REQUIREMENTS,
     url='https://github.com/shirasael/snorkel-hq',
     license='GPLv3',

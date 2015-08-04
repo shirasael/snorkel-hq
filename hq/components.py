@@ -1,11 +1,9 @@
+__author__ = 'code-museum'
+
 import base64
 import os
 import subprocess
 from logbook import info
-import zmq
-from _hq import consts
-
-__author__ = '$Author'
 
 
 class System(object):
@@ -63,15 +61,15 @@ class Repository(object):
         return [base64.decodestring(c) for c in encoded_configurations]
 
     def load_configuration(self, agent, system, configuration):
-        return open(
-            os.path.join(self._repository_path, agent, system, base64.encodestring(configuration).strip() + '.cfg'),
-            'rb').read()
+        return open(self.get_configuration_path(agent, system, configuration), 'rb').read()
 
     def update_configuration(self, agent, system, configuration, content):
-        open(os.path.join(self._repository_path, agent, system, base64.encodestring(configuration).strip() + '.cfg'),
-             'wb').write(content)
+        open(self.get_configuration_path(agent, system, configuration), 'wb').write(content)
         if self._commit_configuration_update(agent, system, configuration):
             self._git_manager.push('origin', 'master')
+
+    def get_configuration_path(self, agent, system, configuration):
+        return os.path.join(self._repository_path, agent, system, base64.encodestring(configuration).strip() + '.cfg')
 
     def _commit_configuration_update(self, agent, system, configuration):
         commit_message = self._create_commit_msg_for_configuration_update(agent, system, configuration)
@@ -81,23 +79,23 @@ class Repository(object):
     def _create_commit_msg_for_configuration_update(agent, system, configuration):
         return 'update configuration: "%s" of system: %s on agent: %s' % (configuration, system, agent)
 
-    def get_registered_agents(self):
-        repository_dirs = os.listdir(self._repository_path)
-        agents = filter(lambda x: x != '.snorkel', repository_dirs)
-        return agents
+        # def get_registered_agents(self):
+        #     repository_dirs = os.listdir(self._repository_path)
+        #     agents = filter(lambda x: x != '.snorkel', repository_dirs)
+        #     return agents
 
-    def create_agent_dir(self, hostname):
-        agent_dir_path = os.path.join(self._repository_path, hostname)
-        if not os.path.exists(agent_dir_path):
-            os.mkdir(agent_dir_path)
+        # def create_agent_dir(self, hostname):
+        #     agent_dir_path = os.path.join(self._repository_path, hostname)
+        #     if not os.path.exists(agent_dir_path):
+        #         os.mkdir(agent_dir_path)
 
-    def add_configuration(self, agent, configuration):
-        file_name = configuration.id + '.cfg'
-        path = os.path.join(self._repository_path, agent.server, file_name)
-        self.create_agent_dir(agent)
-        open(path, 'wb').write(configuration.content)
-        self._git_manager.commit(path, 'adding configuration file: %s' % path)
-        self._git_manager.push()
+        # def add_configuration(self, agent, configuration):
+        #     file_name = configuration.id + '.cfg'
+        #     path = os.path.join(self._repository_path, agent.server, file_name)
+        #     self.create_agent_dir(agent)
+        #     open(path, 'wb').write(configuration.content)
+        #     self._git_manager.commit(path, 'adding configuration file: %s' % path)
+        #     self._git_manager.push()
 
 
 class GitManager(object):

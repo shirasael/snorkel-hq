@@ -5,9 +5,9 @@ from collections import defaultdict
 import zmq
 from logbook import info
 
-from _hq.nice import zmq_poll, ZMQ_REPLY, Commander, CommandsHandler
-from _hq.components import Repository
-from _hq.agent import AgentCommander, SnorkelAgent
+from hq.nice import zmq_poll, ZMQ_REPLY, Commander, CommandsHandler
+from hq.components import Repository
+from hq.agent import AgentCommander, SnorkelAgent
 
 
 class SnorkelHQCommander(Commander):
@@ -80,7 +80,6 @@ class SnorkelHQ(CommandsHandler):
             return
         agent = AgentCommander(address, hostname)
         agent.initialize()
-        self._repository.create_agent_dir(hostname)
         self._agents[hostname] = agent
         for i, system in enumerate(agent.get_systems()):
             self._systems[system][hostname] = i

@@ -3,7 +3,7 @@ __author__ = 'code-museum'
 import zmq
 from logbook import info, error
 
-from _hq.nice import ZMQ_REQUEST, ZMQ_REPLY, ZMQ_POLL_IN, zmq_poll
+from hq.nice import ZMQ_REQUEST, ZMQ_REPLY, ZMQ_POLL_IN, zmq_poll
 
 
 class AgentCommander(object):
