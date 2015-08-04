@@ -60,8 +60,11 @@ class Commander(object):
     def __init__(self, commands_url):
         self._command_socket = SafeClientZMQSocket(zmq.Context(), ZMQ_REQUEST, commands_url)
 
-    def command(self, command_type, parameters):
-        command = {self.COMMAND_TYPE_FIELD: command_type, self.PARAMETERS_FIELD: parameters}
+    def command(self):
+        pass
+
+    def _command(self, command_type, **kwargs):
+        command = {self.COMMAND_TYPE_FIELD: command_type, self.PARAMETERS_FIELD: kwargs}
 
         self._command_socket.send_json(command)
         if not zmq_poll(self._command_socket):
@@ -72,10 +75,10 @@ class Commander(object):
         if CommandsHandler.STATUS_FIELD not in answer or CommandsHandler.VALUE_FIELD not in answer:
             error("Answer format is wrong, use 'status' and 'value' attributes")
             return None
-        if not answer['success']:
+        if not answer[CommandsHandler.STATUS_FIELD]:
             error("Command not succeeded, because of %s" % answer['value'])
             return None
-        return answer['value']
+        return answer[CommandsHandler.VALUE_FIELD]
 
 
 class CommandsHandler(object):

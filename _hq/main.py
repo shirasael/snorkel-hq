@@ -5,44 +5,26 @@ from collections import defaultdict
 import zmq
 from logbook import info, error
 
-from _hq.nice import zmq_poll, ZMQ_REQUEST, SafeClientZMQSocket, ZMQ_REPLY
+from _hq.nice import zmq_poll, ZMQ_REQUEST, SafeClientZMQSocket, ZMQ_REPLY, Commander, command
 from _hq.components import Repository
 from _hq.agent import AgentCommander, SnorkelAgent
 
 
-class SnorkelHQCommander(object):
-    def __init__(self, hq_server_name, command_queue_url='tcp://%s:12346'):
-        self._command_queue_url = command_queue_url
-        self._command_queue = SafeClientZMQSocket(zmq.Context(), ZMQ_REQUEST, command_queue_url % hq_server_name)
-        self._hq_server = hq_server_name
+class SnorkelHQCommander(Commander):
+    def __init__(self, hq_server_name):
+        super(SnorkelHQCommander, self).__init__('tcp://%s:12346' % hq_server_name)
 
     def get_systems(self):
-        return self.command(SnorkelHQ.GET_SYSTEMS)
+        return self._command(SnorkelHQ.GET_SYSTEMS)
 
     def get_servers(self, system=None):
-        return self.command(SnorkelHQ.GET_SERVERS, system=system)
+        return self._command(SnorkelHQ.GET_SERVERS, system=system)
 
     def get_configurations(self, agent=None, system=None):
-        return self.command(SnorkelHQ.GET_CONFIGURATIONS, agent=agent, system=system)
+        return self._command(SnorkelHQ.GET_CONFIGURATIONS, agent=agent, system=system)
 
     def load_configuration(self, agent=None, system=None, configuration=None):
-        return self.command(SnorkelHQ.LOAD_CONFIGURATION, agent=agent, system=system, configuration=configuration)
-
-    # def deploy_configuration(self, server, system, file_name, config):
-    #     self._force_initialize()
-    #     return self.command(PUT_CONFIGURATION_COMMAND,
-    #                         value={'server': server, 'system': system, 'file_name': file_name, 'config': config})
-
-    def command(self, command_type, **values):
-        command = {'type': command_type}
-        if values:
-            command.update(values)
-
-        self._command_queue.send_json(command)
-        if not zmq_poll(self._command_queue):
-            error("Timeout while waiting for answer to command: %s" % type)
-            self._command_queue.initialize()
-        return self._command_queue.receive_json()
+        return self._command(SnorkelHQ.LOAD_CONFIGURATION, agent=agent, system=system, configuration=configuration)
 
 
 class SnorkelHQ(object):
@@ -86,30 +68,28 @@ class SnorkelHQ(object):
         msg = self._command_queue.recv_json()
 
         answer = 'Failure'
-        if msg['type'] == self.GET_SYSTEMS:
+        if msg['command_type'] == self.GET_SYSTEMS:
             info("Got command for getting all systems")
             answer = self.get_systems()
-        elif msg['type'] == self.GET_SERVERS:
+        elif msg['command_type'] == self.GET_SERVERS:
             info("Got command for getting all servers (host names)")
-            system = msg['system'] if 'system' in msg else None
+            system = msg['parameters']['system'] if 'system' in msg['parameters'] else None
             answer = self.get_servers(system)
-        elif msg['type'] == self.GET_CONFIGURATIONS:
+        elif msg['command_type'] == self.GET_CONFIGURATIONS:
             info("Got command for getting configurations of system")
-            agent = msg['agent'] if 'agent' in msg else None
-            system = msg['system'] if 'system' in msg else None
+            agent = msg['parameters']['agent'] if 'agent' in msg['parameters'] else None
+            system = msg['parameters']['system'] if 'system' in msg['parameters'] else None
             answer = self.get_configurations(agent, system)
-        elif msg['type'] == 'deploy-configuration':
-            self.deploy_configuration(msg['value'])
-        elif msg['type'] == self.LOAD_CONFIGURATION:
+        elif msg['command_type'] == self.LOAD_CONFIGURATION:
             info("Got command for load configuration of system")
-            agent = msg['agent'] if 'agent' in msg else None
-            system = msg['system'] if 'system' in msg else None
-            configuration = msg['configuration'] if 'configuration' in msg else None
+            agent = msg['parameters']['agent'] if 'agent' in msg['parameters'] else None
+            system = msg['parameters']['system'] if 'system' in msg['parameters'] else None
+            configuration = msg['parameters']['configuration'] if 'configuration' in msg['parameters'] else None
             answer = self.load_configuration(agent, system, configuration)
         else:
             self._command_queue.send_json('got-bad-command')
 
-        self._command_queue.send_json(answer)
+        self._command_queue.send_json({'status': True, 'value': answer})
 
     def add_agent(self, hostname, address):
         if hostname in self._agents:
