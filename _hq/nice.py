@@ -86,7 +86,7 @@ class CommandsHandler(object):
     VALUE_FIELD = 'value'
 
     def __init__(self, command_handling_url):
-        self._command_handling_socket = SafeServerZMQSocket(zmq.Context(), ZMQ_REQUEST, command_handling_url)
+        self._command_handling_socket = SafeServerZMQSocket(zmq.Context(), ZMQ_REPLY, command_handling_url)
         self._massage_type_to_handlers = {}
 
     def add_command_handler(self, command_type, handler):

@@ -3,9 +3,9 @@ __author__ = 'code-museum'
 from collections import defaultdict
 
 import zmq
-from logbook import info, error
+from logbook import info
 
-from _hq.nice import zmq_poll, ZMQ_REQUEST, SafeClientZMQSocket, ZMQ_REPLY, Commander, command
+from _hq.nice import zmq_poll, ZMQ_REPLY, Commander, CommandsHandler
 from _hq.components import Repository
 from _hq.agent import AgentCommander, SnorkelAgent
 
@@ -27,7 +27,7 @@ class SnorkelHQCommander(Commander):
         return self._command(SnorkelHQ.LOAD_CONFIGURATION, agent=agent, system=system, configuration=configuration)
 
 
-class SnorkelHQ(object):
+class SnorkelHQ(CommandsHandler):
     GET_SYSTEMS = 'get-systems'
     GET_SERVERS = 'get-servers'
     GET_CONFIGURATIONS = 'get-configurations'
@@ -35,11 +35,19 @@ class SnorkelHQ(object):
 
     def __init__(self, repository_path, remote, agents_registration_queue_url='tcp://*:12345',
                  command_queue_url='tcp://*:12346'):
-        self._agents_registration_queue_url = agents_registration_queue_url
-        self._command_queue_url = command_queue_url
+        super(SnorkelHQ, self).__init__(command_queue_url)
 
+        self.add_command_handler(self.GET_SYSTEMS,
+                                 lambda: (True, self.get_systems()))
+        self.add_command_handler(self.GET_SERVERS,
+                                 lambda *args, **kwargs: (True, self.get_servers(*args, **kwargs)))
+        self.add_command_handler(self.GET_CONFIGURATIONS,
+                                 lambda *args, **kwargs: (True, self.get_configurations(*args, **kwargs)))
+        self.add_command_handler(self.LOAD_CONFIGURATION,
+                                 lambda *args, **kwargs: (True, self.load_configuration(*args, **kwargs)))
+
+        self._agents_registration_queue_url = agents_registration_queue_url
         self._agents_registration_queue = None
-        self._command_queue = None
 
         self._agents = {}
         self._systems = defaultdict(dict)
@@ -58,38 +66,6 @@ class SnorkelHQ(object):
                 continue
             info("Hey! it's an agent!")
             self.add_agent(hostname=msg['hostname'], address=msg['command_queue_address'])
-
-    def handle_commands(self):
-        self._force_initialize()
-        if not zmq_poll(self._command_queue):
-            error("Didn't get message")
-            return
-
-        msg = self._command_queue.recv_json()
-
-        answer = 'Failure'
-        if msg['command_type'] == self.GET_SYSTEMS:
-            info("Got command for getting all systems")
-            answer = self.get_systems()
-        elif msg['command_type'] == self.GET_SERVERS:
-            info("Got command for getting all servers (host names)")
-            system = msg['parameters']['system'] if 'system' in msg['parameters'] else None
-            answer = self.get_servers(system)
-        elif msg['command_type'] == self.GET_CONFIGURATIONS:
-            info("Got command for getting configurations of system")
-            agent = msg['parameters']['agent'] if 'agent' in msg['parameters'] else None
-            system = msg['parameters']['system'] if 'system' in msg['parameters'] else None
-            answer = self.get_configurations(agent, system)
-        elif msg['command_type'] == self.LOAD_CONFIGURATION:
-            info("Got command for load configuration of system")
-            agent = msg['parameters']['agent'] if 'agent' in msg['parameters'] else None
-            system = msg['parameters']['system'] if 'system' in msg['parameters'] else None
-            configuration = msg['parameters']['configuration'] if 'configuration' in msg['parameters'] else None
-            answer = self.load_configuration(agent, system, configuration)
-        else:
-            self._command_queue.send_json('got-bad-command')
-
-        self._command_queue.send_json({'status': True, 'value': answer})
 
     def add_agent(self, hostname, address):
         if hostname in self._agents:
@@ -118,9 +94,6 @@ class SnorkelHQ(object):
         ctx = zmq.Context()
         self._agents_registration_queue = ctx.socket(ZMQ_REPLY)
         self._agents_registration_queue.bind(self._agents_registration_queue_url)
-
-        self._command_queue = ctx.socket(ZMQ_REPLY)
-        self._command_queue.bind(self._command_queue_url)
 
         self._repository.initialize()
         self._initialized = True
