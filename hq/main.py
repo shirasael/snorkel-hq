@@ -5,7 +5,7 @@ from collections import defaultdict
 import zmq
 from logbook import info
 
-from hq.nice import zmq_poll, ZMQ_REPLY, Commander, CommandsHandler
+from hq.nice import zmq_poll, ZMQ_REPLY, Commander, CommandsHandler, SafeServerZMQSocket
 from hq.components import Repository
 from hq.agent import AgentCommander, SnorkelAgent
 
@@ -37,18 +37,13 @@ class SnorkelHQ(CommandsHandler):
                  command_queue_url='tcp://*:12346'):
         super(SnorkelHQ, self).__init__(command_queue_url)
 
-        self.add_command_handler(self.GET_SYSTEMS,
-                                 lambda: (True, self.get_systems()))
-        self.add_command_handler(self.GET_SERVERS,
-                                 lambda system: (True, self.get_servers(system)))
-        self.add_command_handler(self.GET_CONFIGURATIONS,
-                                 lambda agent, system: (True, self.get_configurations(agent, system)))
-        self.add_command_handler(
-            self.LOAD_CONFIGURATION,
-            lambda agent, system, configuration: (True, self.load_configuration(agent, system, configuration)))
+        self.add_safe_command_handler(self.GET_SYSTEMS, self.get_systems)
+        self.add_safe_command_handler(self.GET_SERVERS, self.get_servers)
+        self.add_safe_command_handler(self.GET_CONFIGURATIONS, self.get_configurations)
+        self.add_safe_command_handler(self.LOAD_CONFIGURATION, self.load_configuration)
 
-        self._agents_registration_queue_url = agents_registration_queue_url
-        self._agents_registration_queue = None
+        self._agents_registration_queue = SafeServerZMQSocket(
+            zmq.Context(), ZMQ_REPLY, agents_registration_queue_url)
 
         self._agents = {}
         self._systems = defaultdict(dict)
@@ -58,10 +53,6 @@ class SnorkelHQ(CommandsHandler):
         self._initialized = False
 
     def initialize(self):
-        ctx = zmq.Context()
-        self._agents_registration_queue = ctx.socket(ZMQ_REPLY)
-        self._agents_registration_queue.bind(self._agents_registration_queue_url)
-
         self._repository.initialize()
         self._initialized = True
 
@@ -69,7 +60,7 @@ class SnorkelHQ(CommandsHandler):
         self._force_initialize()
         while zmq_poll(self._agents_registration_queue, 0):
             info("Got greeting from agent")
-            msg = self._agents_registration_queue.recv_json()
+            msg = self._agents_registration_queue.receive_json()
             self._agents_registration_queue.send_json('ACK')
             if msg['type'] != SnorkelAgent.GREETING_MSG:
                 continue

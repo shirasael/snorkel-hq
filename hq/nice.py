@@ -92,6 +92,14 @@ class CommandsHandler(object):
     def add_command_handler(self, command_type, handler):
         self._massage_type_to_handlers[command_type] = handler
 
+    def add_safe_command_handler(self, command_type, handler):
+        def safe_handler(*args, **kwargs):
+            try:
+                return True, handler(*args, **kwargs)
+            except Exception as e:
+                return False, e
+        self._massage_type_to_handlers[command_type] = safe_handler
+
     def handle_commands(self):
         if not zmq_poll(self._command_handling_socket):
             error("Didn't get message")
@@ -110,4 +118,7 @@ class CommandsHandler(object):
             (status, value) = self._massage_type_to_handlers[
                 msg[Commander.COMMAND_TYPE_FIELD]](**msg[Commander.PARAMETERS_FIELD])
 
+        if status is False and isinstance(value, Exception):
+            self._command_handling_socket.send_json({self.STATUS_FIELD: status, self.VALUE_FIELD: str(value)})
+            raise value
         self._command_handling_socket.send_json({self.STATUS_FIELD: status, self.VALUE_FIELD: value})
