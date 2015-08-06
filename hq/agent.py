@@ -3,7 +3,7 @@
 import zmq
 from logbook import info, error
 
-from hq.nice import ZMQ_REQUEST, ZMQ_REPLY, zmq_poll, SafeClientZMQSocket
+from hq.nice import ZMQ_REQUEST, ZMQ_REPLY, zmq_poll, SafeClientZMQSocket, SafeRandomPortServerZMQSocket
 
 
 class AgentCommander(object):
@@ -12,14 +12,14 @@ class AgentCommander(object):
         self._hostname = hostname
         self._command_queue = SafeClientZMQSocket(zmq.Context(), ZMQ_REQUEST, self._address)
 
-    def command(self, type, **values):
-        command = {'type': type}
+    def command(self, msg_type, **values):
+        command = {'type': msg_type}
         if values:
             command.update(values)
 
         self._command_queue.send_json(command)
         if not zmq_poll(self._command_queue, 3000):
-            error("Timeout while waiting for answer to command: %s" % type)
+            error("Timeout while waiting for answer to command: %s" % msg_type)
             self._command_queue.initialize()
         answer = self._command_queue.receive_json()
         if 'success' not in answer or 'value' not in answer:
@@ -78,20 +78,18 @@ class SnorkelAgent(object):
 
         self._ctx = zmq.Context()
         self._registration_queue = SafeClientZMQSocket(self._ctx, ZMQ_REQUEST, self._registration_queue_url)
-        self._command_queue = None
-        self._command_queue_url = ''
+        self._command_queue = SafeRandomPortServerZMQSocket(self._ctx, ZMQ_REPLY, 'tcp://*')
 
-    def initialize(self):
-        self._command_queue = self._ctx.socket(ZMQ_REPLY)
-        port = self._command_queue.bind_to_random_port('tcp://*')
-        self._command_queue_url = 'tcp://%s:%s' % (self._agent_hostname, port)
+    @property
+    def _command_queue_url(self):
+        return self._command_queue.socket_client_url(self._agent_hostname)
 
     def handle_command_request(self):
         if not zmq_poll(self._command_queue):
             error("Didn't get message")
             return
 
-        msg = self._command_queue.recv_json()
+        msg = self._command_queue.receive_json()
 
         if 'type' not in msg:
             error("Massage invalid, please use 'type' attribute")

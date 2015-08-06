@@ -53,6 +53,17 @@ class SafeServerZMQSocket(SafeZMQSocket):
         self._socket.bind(self._address)
 
 
+class SafeRandomPortServerZMQSocket(SafeZMQSocket):
+    def _initialize(self):
+        self._socket = self._context.socket(self._socket_type)
+        self._port = self._socket.bind_to_random_port(self._address)
+
+    def socket_client_url(self, hostname):
+        if not self._socket:
+            self._initialize()
+        return 'tcp://%s:%s' % (hostname, self._port)
+
+
 class Commander(object):
     COMMAND_TYPE_FIELD = 'command_type'
     PARAMETERS_FIELD = 'parameters'

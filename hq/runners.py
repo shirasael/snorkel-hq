@@ -9,7 +9,6 @@ class SnorkelAgentRunner(object):
 
     def start(self):
         last_time_welcoming = None
-        self._agent.initialize()
         while True:
             if not last_time_welcoming or last_time_welcoming <= datetime.now() - timedelta(seconds=15):
                 self._agent.say_hi()
