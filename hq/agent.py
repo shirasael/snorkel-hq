@@ -3,19 +3,14 @@
 import zmq
 from logbook import info, error
 
-from hq.nice import ZMQ_REQUEST, ZMQ_REPLY, ZMQ_POLL_IN, zmq_poll
+from hq.nice import ZMQ_REQUEST, ZMQ_REPLY, zmq_poll, SafeClientZMQSocket
 
 
 class AgentCommander(object):
     def __init__(self, address, hostname):
         self._address = address
         self._hostname = hostname
-        self._command_queue = None
-
-    def initialize(self):
-        ctx = zmq.Context()
-        self._command_queue = ctx.socket(ZMQ_REQUEST)
-        self._command_queue.connect(self._address)
+        self._command_queue = SafeClientZMQSocket(zmq.Context(), ZMQ_REQUEST, self._address)
 
     def command(self, type, **values):
         command = {'type': type}
@@ -23,10 +18,10 @@ class AgentCommander(object):
             command.update(values)
 
         self._command_queue.send_json(command)
-        if self._command_queue.poll(3000) != ZMQ_POLL_IN:
+        if not zmq_poll(self._command_queue, 3000):
             error("Timeout while waiting for answer to command: %s" % type)
-            self.initialize()
-        answer = self._command_queue.recv_json()
+            self._command_queue.initialize()
+        answer = self._command_queue.receive_json()
         if 'success' not in answer or 'value' not in answer:
             error("Answer format is wrong, use 'success' and 'value' attributes")
             return None
@@ -81,9 +76,15 @@ class SnorkelAgent(object):
         self._agent_hostname = agent_hostname
         self._registration_queue_url = registration_queue_url
 
-        self._registration_queue = None
+        self._ctx = zmq.Context()
+        self._registration_queue = SafeClientZMQSocket(self._ctx, ZMQ_REQUEST, self._registration_queue_url)
         self._command_queue = None
         self._command_queue_url = ''
+
+    def initialize(self):
+        self._command_queue = self._ctx.socket(ZMQ_REPLY)
+        port = self._command_queue.bind_to_random_port('tcp://*')
+        self._command_queue_url = 'tcp://%s:%s' % (self._agent_hostname, port)
 
     def handle_command_request(self):
         if not zmq_poll(self._command_queue):
@@ -118,14 +119,6 @@ class SnorkelAgent(object):
             (success, value) = False, 'got-bad-message-type'
 
         self._command_queue.send_json({'success': success, 'value': value})
-
-    def initialize(self):
-        ctx = zmq.Context()
-        self._registration_queue = ctx.socket(ZMQ_REQUEST)
-        self._registration_queue.connect(self._registration_queue_url)
-        self._command_queue = ctx.socket(ZMQ_REPLY)
-        port = self._command_queue.bind_to_random_port('tcp://*')
-        self._command_queue_url = 'tcp://%s:%s' % (self._agent_hostname, port)
 
     def say_hi(self):
         info('Saying hey to: %s, talk to me in %s' % (self._registration_queue_url, self._command_queue_url))
