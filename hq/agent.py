@@ -125,7 +125,7 @@ class SnorkelAgent(object):
         self._registration_queue.send_json({'type': self.GREETING_MSG,
                                             'hostname': self._agent_hostname,
                                             'command_queue_address': self._command_queue_url})
-        self._registration_queue.recv_json()
+        self._registration_queue.receive_json()
 
 
 class AgentCore(object):
