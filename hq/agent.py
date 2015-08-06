@@ -1,4 +1,4 @@
-__author__ = 'code-museum'
+﻿__author__ = 'code-museum'
 
 import zmq
 from logbook import info, error
