@@ -40,11 +40,12 @@ class SnorkelHQ(CommandsHandler):
         self.add_command_handler(self.GET_SYSTEMS,
                                  lambda: (True, self.get_systems()))
         self.add_command_handler(self.GET_SERVERS,
-                                 lambda *args, **kwargs: (True, self.get_servers(*args, **kwargs)))
+                                 lambda system: (True, self.get_servers(system)))
         self.add_command_handler(self.GET_CONFIGURATIONS,
-                                 lambda *args, **kwargs: (True, self.get_configurations(*args, **kwargs)))
-        self.add_command_handler(self.LOAD_CONFIGURATION,
-                                 lambda *args, **kwargs: (True, self.load_configuration(*args, **kwargs)))
+                                 lambda agent, system: (True, self.get_configurations(agent, system)))
+        self.add_command_handler(
+            self.LOAD_CONFIGURATION,
+            lambda agent, system, configuration: (True, self.load_configuration(agent, system, configuration)))
 
         self._agents_registration_queue_url = agents_registration_queue_url
         self._agents_registration_queue = None
