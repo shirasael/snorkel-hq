@@ -3,22 +3,8 @@ __author__ = 'code-museum'
 import base64
 import os
 import subprocess
+
 from logbook import info
-
-
-class System(object):
-    def __init__(self, name, id, configurations=None, agents=None):
-        self.agents = agents if agents is not None else []
-        self.configurations = configurations if configurations is not None else []
-        self.id = id
-        self.name = name
-
-
-class Configurations(object):
-    def __init__(self, id, name, content):
-        self.id = id
-        self.name = name
-        self.content = content
 
 
 class Repository(object):
