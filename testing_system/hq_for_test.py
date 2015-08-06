@@ -1,7 +1,6 @@
 __author__ = 'code-museum'
 
-from hq.main import SnorkelHQ
-from hq.runners import SnorkelHQRunner
+from hq import SnorkelHQ, SnorkelHQRunner
 
 
 def main():

@@ -2,8 +2,7 @@ __author__ = 'code-museum'
 
 from logbook import error
 
-from hq.runners import SnorkelAgentRunner
-from hq.agent import AgentCore, SnorkelAgent
+from hq import AgentCore, SnorkelAgent, SnorkelAgentRunner
 
 
 class SnorkelAgentCore(AgentCore):
