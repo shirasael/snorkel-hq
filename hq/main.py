@@ -71,7 +71,6 @@ class SnorkelHQ(CommandsHandler):
         if hostname in self._agents:
             return
         agent = AgentCommander(address, hostname)
-        agent.initialize()
         self._agents[hostname] = agent
         for i, system in enumerate(agent.get_systems()):
             self._systems[system][hostname] = i
