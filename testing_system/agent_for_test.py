@@ -18,7 +18,7 @@ class SystemTestSnorkelAgentCore(SnorkelAgentCore):
         self.configurations = reduce(list.__add__, self.systems_to_configurations.values())
 
     def _get_systems(self):
-        return True, self.systems
+        return self.systems
 
     def _get_configurations(self, system_id):
         if system_id < 0 or system_id > len(self.systems) - 1:
