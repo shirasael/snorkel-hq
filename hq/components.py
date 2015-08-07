@@ -17,14 +17,7 @@ class Repository(object):
         self._remote_git_manager = None
 
     def initialize(self):
-        if not os.path.exists(self._remote):
-            info(u"Can't find remote, creating directory!")
-            os.mkdir(self._remote)
-
-        if not os.path.exists(os.path.join(self._remote, 'refs')):
-            self._remote_git_manager = GitManager.init(self._remote, bare=True)
-        else:
-            self._remote_git_manager = GitManager(self._remote)
+        self._initialize_remote()
 
         if not os.path.exists(self._repository_path):
             self._git_manager = GitManager.clone(self._remote, self._repository_path)
@@ -39,6 +32,16 @@ class Repository(object):
                 os.remove(snorkel_metadata_dir)
             if not self._git_manager.push('origin', 'master'):
                 os.remove(snorkel_metadata_dir)
+
+    def _initialize_remote(self):
+        if not os.path.exists(self._remote):
+            info(u"Can't find remote, creating directory!")
+            os.mkdir(self._remote)
+
+        if not os.path.exists(os.path.join(self._remote, 'refs')):
+            self._remote_git_manager = GitManager.init(self._remote, bare=True)
+        else:
+            self._remote_git_manager = GitManager(self._remote)
 
     def get_systems(self):
         systems = set()
