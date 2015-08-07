@@ -96,16 +96,24 @@ class GitManager(object):
     @staticmethod
     def run_git_command(args=None, repo_path=None):
         info('Run git command: "%s" from dir: %s' % (' '.join(['git'] + args), repo_path))
-        p = subprocess.Popen(['git'] + args, cwd=repo_path)
-        return p.wait() == 0
+        p = subprocess.Popen(['git'] + args, cwd=repo_path, stdout=subprocess.PIPE)
+        return p.wait() == 0, p.stdout.read()
 
     def pull(self):
-        return self.run_git_command(['pull'], self._path)
+        status, stdout = self.run_git_command(['pull'], self._path)
+        print 'pull output:', stdout
+        return status
 
     def push(self, remote, branch):
-        return self.run_git_command(['push', remote, branch], self._path)
+        status, stdout = self.run_git_command(['push', remote, branch], self._path)
+        print stdout
+        return status
 
     def commit(self, path, msg):
-        if not self.run_git_command(['add', path], self._path):
-            return False
-        return self.run_git_command(['commit', '-m', msg], self._path)
+        status, stdout = self.run_git_command(['add', path], self._path)
+        print stdout
+        if not status:
+            return status
+        status, stdout = self.run_git_command(['commit', '-m', msg], self._path)
+        print stdout
+        return status
