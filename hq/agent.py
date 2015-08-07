@@ -3,9 +3,9 @@ from hq.nice.zeromq import zmq_context
 
 __author__ = 'code-museum'
 
-from logbook import info, error
+from logbook import info
 
-from hq.nice import ZMQ_REQUEST, ZMQ_REPLY, zmq_poll, SafeClientZMQSocket, SafeRandomPortServerZMQSocket
+from hq.nice import ZMQ_REQUEST, SafeClientZMQSocket, SafeRandomPortServerZMQSocket
 
 
 class AgentCommander(Commander):
