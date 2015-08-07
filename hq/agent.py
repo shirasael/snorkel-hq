@@ -1,11 +1,9 @@
-﻿from hq.nice.communication import Commander, CommandsHandler
-from hq.nice.zeromq import zmq_context
-
-__author__ = 'code-museum'
+﻿__author__ = 'code-museum'
 
 from logbook import info
 
-from hq.nice import ZMQ_REQUEST, SafeClientZMQSocket, SafeRandomPortServerZMQSocket
+from hq.nice import ZMQ_REQUEST, SafeClientZMQSocket, SafeRandomPortServerZMQSocket, zmq_context, Commander, \
+    CommandsHandler
 
 
 class AgentCommander(Commander):
