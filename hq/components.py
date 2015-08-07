@@ -78,23 +78,3 @@ class Repository(object):
     @staticmethod
     def _create_commit_msg_for_configuration_update(agent, system, configuration):
         return 'update configuration: "%s" of system: %s on agent: %s' % (configuration, system, agent)
-
-        # def get_registered_agents(self):
-        #     repository_dirs = os.listdir(self._repository_path)
-        #     agents = filter(lambda x: x != '.snorkel', repository_dirs)
-        #     return agents
-
-        # def create_agent_dir(self, hostname):
-        #     agent_dir_path = os.path.join(self._repository_path, hostname)
-        #     if not os.path.exists(agent_dir_path):
-        #         os.mkdir(agent_dir_path)
-
-        # def add_configuration(self, agent, configuration):
-        #     file_name = configuration.id + '.cfg'
-        #     path = os.path.join(self._repository_path, agent.server, file_name)
-        #     self.create_agent_dir(agent)
-        #     open(path, 'wb').write(configuration.content)
-        #     self._git_manager.commit(path, 'adding configuration file: %s' % path)
-        #     self._git_manager.push()
-
-
