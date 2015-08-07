@@ -64,11 +64,11 @@ class AgentCommander(object):
 
 
 class SnorkelAgent(object):
-    GREETING_MSG = 'hello-you'
-    GET_SYSTEMS = 'get-systems'
-    GET_CONFIGURATIONS = 'get-configurations'
-    LOAD_CONFIGURATION = 'load-configuration'
-    PUT_CONFIGURATION = 'put-configuration'
+    GREETING_MSG = u'hello-you'
+    GET_SYSTEMS = u'get-systems'
+    GET_CONFIGURATIONS = u'get-configurations'
+    LOAD_CONFIGURATION = u'load-configuration'
+    PUT_CONFIGURATION = u'put-configuration'
 
     def __init__(self, client_core, agent_hostname, registration_queue_url='tcp://localhost:12345'):
         assert isinstance(client_core, SnorkelAgentCore)

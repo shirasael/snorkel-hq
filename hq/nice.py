@@ -93,8 +93,8 @@ class Commander(object):
 
 
 class CommandsHandler(object):
-    STATUS_FIELD = 'status'
-    VALUE_FIELD = 'value'
+    STATUS_FIELD = u'status'
+    VALUE_FIELD = u'value'
 
     def __init__(self, command_handling_url, socket_cls=SafeServerZMQSocket):
         self._command_handling_socket = socket_cls(zmq.Context(), ZMQ_REPLY, command_handling_url)
