@@ -100,20 +100,20 @@ class GitManager(object):
         return p.wait() == 0, p.stdout.read()
 
     def pull(self):
-        status, stdout = self.run_git_command(['pull'], self._path)
-        print 'pull output:', stdout
+        status, standard_output = self.run_git_command(['pull'], self._path)
+        print 'pull output:', standard_output
         return status
 
     def push(self, remote, branch):
-        status, stdout = self.run_git_command(['push', remote, branch], self._path)
-        print stdout
+        status, standard_output = self.run_git_command(['push', remote, branch], self._path)
+        print standard_output
         return status
 
     def commit(self, path, msg):
-        status, stdout = self.run_git_command(['add', path], self._path)
-        print stdout
+        status, standard_output = self.run_git_command(['add', path], self._path)
+        print standard_output
         if not status:
             return status
-        status, stdout = self.run_git_command(['commit', '-m', msg], self._path)
-        print stdout
+        status, standard_output = self.run_git_command(['commit', '-m', msg], self._path)
+        print standard_output
         return status
