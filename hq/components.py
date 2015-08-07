@@ -13,8 +13,18 @@ class Repository(object):
         self._remote = remote
         self._repository = None
         self._git_manager = None
+        self._remote_git_manager = None
 
     def initialize(self):
+        if not os.path.exists(self._remote):
+            info(u"Can't find remote, creating directory!")
+            os.mkdir(self._remote)
+
+        if not os.path.exists(os.path.join(self._remote, 'refs')):
+            self._remote_git_manager = GitManager.init(self._remote, bare=True)
+        else:
+            self._remote_git_manager = GitManager(self._remote)
+
         if not os.path.exists(self._repository_path):
             self._git_manager = GitManager.clone(self._remote, self._repository_path)
         self._git_manager = GitManager(self._repository_path)
@@ -89,6 +99,14 @@ class GitManager(object):
         self._path = path
 
     @staticmethod
+    def init(path, bare=False):
+        command = [u'init']
+        if bare:
+            command += [u'--bare']
+        GitManager.run_git_command(command, path)
+        return GitManager(path)
+
+    @staticmethod
     def clone(remote, path):
         GitManager.run_git_command(['clone', remote, path])
         return GitManager(path)
@@ -96,22 +114,19 @@ class GitManager(object):
     @staticmethod
     def run_git_command(args=None, repo_path=None):
         info('Run git command: "%s" from dir: %s' % (' '.join(['git'] + args), repo_path))
-        p = subprocess.Popen(['git'] + args, cwd=repo_path, stdout=subprocess.PIPE)
+        p = subprocess.Popen(['git'] + args, cwd=repo_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return p.wait() == 0, p.stdout.read()
 
     def pull(self):
         status, standard_output = self.run_git_command(['pull'], self._path)
-        print 'pull output:', standard_output
         return status
 
     def push(self, remote, branch):
         status, standard_output = self.run_git_command(['push', remote, branch], self._path)
-        print standard_output
         return status
 
     def commit(self, path, msg):
         status, standard_output = self.run_git_command(['add', path], self._path)
-        print standard_output
         if not status:
             return status
         status, standard_output = self.run_git_command(['commit', '-m', msg], self._path)
