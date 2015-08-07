@@ -7,7 +7,7 @@ from collections import defaultdict
 from logbook import info
 
 from hq.nice import zmq_poll, ZMQ_REPLY, Commander, CommandsHandler, SafeServerZMQSocket
-from hq.components import Repository
+from hq.repository import Repository
 from hq.agent import AgentCommander, SnorkelAgent
 
 
