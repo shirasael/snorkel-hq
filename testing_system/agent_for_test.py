@@ -2,12 +2,12 @@ __author__ = 'code-museum'
 
 from logbook import error
 
-from hq import AgentCore, SnorkelAgent, SnorkelAgentRunner
+from hq import SnorkelAgentCore, SnorkelAgent, SnorkelAgentRunner
 
 
-class SnorkelAgentCore(AgentCore):
+class SystemTestSnorkelAgentCore(SnorkelAgentCore):
     def __init__(self):
-        super(SnorkelAgentCore, self).__init__()
+        super(SystemTestSnorkelAgentCore, self).__init__()
 
         self.systems_to_configurations = {
             'Banana': ['d:\\Temp\\Sys\\sys.json'],
@@ -26,7 +26,7 @@ class SnorkelAgentCore(AgentCore):
             return False, None
         return True, self.systems_to_configurations[self.systems[system_id]]
 
-    def _put_configuration(self, system_id, configuration_id, configuration_content):
+    def _update_configuration(self, system_id, configuration_id, configuration_content):
         if system_id < 0 or system_id > len(self.systems) - 1:
             error("I don't know system id %s, is it nice?" % system_id)
             return False, None
@@ -47,7 +47,7 @@ class SnorkelAgentCore(AgentCore):
 
 
 def main():
-    snorkel_agent_core = SnorkelAgentCore()
+    snorkel_agent_core = SystemTestSnorkelAgentCore()
     snorkel_agent = SnorkelAgent(snorkel_agent_core, 'localhost')
     snorkel_agent_runner = SnorkelAgentRunner(snorkel_agent)
     snorkel_agent_runner.start()

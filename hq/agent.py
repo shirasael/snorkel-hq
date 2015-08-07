@@ -71,7 +71,7 @@ class SnorkelAgent(object):
     PUT_CONFIGURATION = 'put-configuration'
 
     def __init__(self, client_core, agent_hostname, registration_queue_url='tcp://localhost:12345'):
-        assert isinstance(client_core, AgentCore)
+        assert isinstance(client_core, SnorkelAgentCore)
         self._agent_client_core = client_core
         self._agent_hostname = agent_hostname
         self._registration_queue_url = registration_queue_url
@@ -126,7 +126,7 @@ class SnorkelAgent(object):
         self._registration_queue.receive_json()
 
 
-class AgentCore(object):
+class SnorkelAgentCore(object):
     def _get_systems(self):
         raise NotImplementedError()
 
