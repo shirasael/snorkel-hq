@@ -1,6 +1,7 @@
-﻿__author__ = 'code-museum'
+﻿from hq.nice.zeromq import zmq_context
 
-import zmq
+__author__ = 'code-museum'
+
 from logbook import info, error
 
 from hq.nice import ZMQ_REQUEST, ZMQ_REPLY, zmq_poll, SafeClientZMQSocket, SafeRandomPortServerZMQSocket
@@ -10,7 +11,7 @@ class AgentCommander(object):
     def __init__(self, address, hostname):
         self._address = address
         self._hostname = hostname
-        self._command_queue = SafeClientZMQSocket(zmq.Context(), ZMQ_REQUEST, self._address)
+        self._command_queue = SafeClientZMQSocket(zmq_context(), ZMQ_REQUEST, self._address)
 
     def command(self, msg_type, **values):
         command = {'type': msg_type}
@@ -76,7 +77,7 @@ class SnorkelAgent(object):
         self._agent_hostname = agent_hostname
         self._registration_queue_url = registration_queue_url
 
-        self._ctx = zmq.Context()
+        self._ctx = zmq_context()
         self._registration_queue = SafeClientZMQSocket(self._ctx, ZMQ_REQUEST, self._registration_queue_url)
         self._command_queue = SafeRandomPortServerZMQSocket(self._ctx, ZMQ_REPLY, 'tcp://*')
 

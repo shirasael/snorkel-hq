@@ -1,67 +1,8 @@
 __author__ = 'code-museum'
 
-import zmq
 from logbook import error, info
 
-ZMQ_REQUEST = getattr(zmq, 'REQ')
-ZMQ_REPLY = getattr(zmq, 'REP')
-ZMQ_POLL_IN = getattr(zmq, 'POLLIN')
-
-
-def zmq_poll(socket, timeout=3000):
-    return socket.poll(timeout) == ZMQ_POLL_IN
-
-
-class SafeZMQSocket(object):
-    def __init__(self, context, socket_type, address):
-        self._context = context
-        self._socket_type = socket_type
-        self._address = address
-        self._socket = None
-
-    def _initialize(self):
-        raise NotImplementedError
-
-    def initialize(self):
-        self._initialize()
-
-    @property
-    def _initialized_socket(self):
-        if not self._socket:
-            self._initialize()
-        return self._socket
-
-    def receive_json(self):
-        return self._initialized_socket.recv_json()
-
-    def send_json(self, value):
-        self._initialized_socket.send_json(value)
-
-    def poll(self, timeout):
-        return self._initialized_socket.poll(timeout)
-
-
-class SafeClientZMQSocket(SafeZMQSocket):
-    def _initialize(self):
-        self._socket = self._context.socket(self._socket_type)
-        self._socket.connect(self._address)
-
-
-class SafeServerZMQSocket(SafeZMQSocket):
-    def _initialize(self):
-        self._socket = self._context.socket(self._socket_type)
-        self._socket.bind(self._address)
-
-
-class SafeRandomPortServerZMQSocket(SafeZMQSocket):
-    def _initialize(self):
-        self._socket = self._context.socket(self._socket_type)
-        self._port = self._socket.bind_to_random_port(self._address)
-
-    def socket_client_url(self, hostname):
-        if not self._socket:
-            self._initialize()
-        return 'tcp://%s:%s' % (hostname, self._port)
+from hq.nice.zeromq import SafeClientZMQSocket, ZMQ_REQUEST, ZMQ_REPLY, SafeServerZMQSocket, zmq_poll, zmq_context
 
 
 class Commander(object):
@@ -69,7 +10,7 @@ class Commander(object):
     PARAMETERS_FIELD = 'parameters'
 
     def __init__(self, commands_url):
-        self._command_socket = SafeClientZMQSocket(zmq.Context(), ZMQ_REQUEST, commands_url)
+        self._command_socket = SafeClientZMQSocket(zmq_context(), ZMQ_REQUEST, commands_url)
 
     def command(self):
         pass
@@ -97,7 +38,7 @@ class CommandsHandler(object):
     VALUE_FIELD = u'value'
 
     def __init__(self, command_handling_url, socket_cls=SafeServerZMQSocket):
-        self._command_handling_socket = socket_cls(zmq.Context(), ZMQ_REPLY, command_handling_url)
+        self._command_handling_socket = socket_cls(zmq_context(), ZMQ_REPLY, command_handling_url)
         self._massage_type_to_handlers = {}
 
     def add_command_handler(self, command_type, handler):
@@ -109,6 +50,7 @@ class CommandsHandler(object):
                 return True, handler(*args, **kwargs)
             except Exception as e:
                 return False, e
+
         self._massage_type_to_handlers[command_type] = safe_handler
 
     def handle_commands(self):

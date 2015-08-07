@@ -1,8 +1,9 @@
+from hq.nice.zeromq import zmq_context
+
 __author__ = 'code-museum'
 
 from collections import defaultdict
 
-import zmq
 from logbook import info
 
 from hq.nice import zmq_poll, ZMQ_REPLY, Commander, CommandsHandler, SafeServerZMQSocket
@@ -43,7 +44,7 @@ class SnorkelHQ(CommandsHandler):
         self.add_safe_command_handler(self.LOAD_CONFIGURATION, self.load_configuration)
 
         self._agents_registration_queue = SafeServerZMQSocket(
-            zmq.Context(), ZMQ_REPLY, agents_registration_queue_url)
+            zmq_context(), ZMQ_REPLY, agents_registration_queue_url)
 
         self._agents = {}
         self._systems = defaultdict(dict)
