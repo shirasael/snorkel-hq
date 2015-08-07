@@ -8,7 +8,7 @@ from logbook import info
 from hq.nice.git import GitManager
 
 
-class Repository(object):
+class SnorkelRepository(object):
     def __init__(self, repository_path, remote):
         self._repository_path = repository_path
         self._remote = remote

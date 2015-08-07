@@ -7,7 +7,7 @@ from collections import defaultdict
 from logbook import info
 
 from hq.nice import zmq_poll, ZMQ_REPLY, Commander, CommandsHandler, SafeServerZMQSocket
-from hq.repository import Repository
+from hq.snorkelrepository import SnorkelRepository
 from hq.agent import AgentCommander, SnorkelAgent
 
 
@@ -49,7 +49,7 @@ class SnorkelHQ(CommandsHandler):
         self._agents = {}
         self._systems = defaultdict(dict)
 
-        self._repository = Repository(repository_path, remote)
+        self._repository = SnorkelRepository(repository_path, remote)
 
         self._initialized = False
 
