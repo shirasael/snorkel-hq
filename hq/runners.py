@@ -13,7 +13,7 @@ class SnorkelAgentRunner(object):
             if not last_time_welcoming or last_time_welcoming <= datetime.now() - timedelta(seconds=15):
                 self._agent.say_hi()
                 last_time_welcoming = datetime.now()
-            self._agent.handle_command_request()
+            self._agent.handle_commands()
 
 
 class SnorkelHQRunner(object):
