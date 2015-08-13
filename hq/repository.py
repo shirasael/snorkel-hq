@@ -1,6 +1,7 @@
 __author__ = 'code-museum'
 
 import base64
+import hashlib
 import os
 
 from logbook import info
@@ -85,6 +86,20 @@ class SnorkelRepository(object):
         open(self._get_configuration_path(agent, system, configuration), 'wb').write(content)
         if self._commit_configuration_update(agent, system, configuration):
             self._git_manager.push('origin', 'master')
+
+    def add_configuration(self, hostname, system, configuration, content):
+        if self.has_configuration(hostname, system, configuration):
+            raise Exception("Configuration %s is already exists in repository!" % configuration)
+        self.update_configuration(hostname, system, configuration, content)
+
+    def hash_configuration(self, hostname, system, configuration):
+        configuration_content = self.load_configuration(hostname, system, configuration)
+        sha1 = hashlib.sha1()
+        sha1.update(configuration_content)
+        return sha1.hexdigest()
+
+    def has_configuration(self, hostname, system, configuration):
+        return os.path.exists(self._get_configuration_path(hostname, system, configuration))
 
     def _get_configuration_path(self, agent, system, configuration):
         return os.path.join(self._repository_path, agent, system, base64.encodestring(configuration).strip() + '.cfg')

@@ -83,6 +83,15 @@ class SnorkelHQ(CommandsHandler):
                     self._repository.add_system(agent_commander.hostname, system)
                 for configuration in agent_commander.get_configurations(system)[1]:
                     debug('Found configuration: ' + configuration)
+                    if not self._repository.has_configuration(agent_commander.hostname, system, configuration):
+                        configuration_content = agent_commander.load_configuration(system, configuration)[1]
+                        self._repository.add_configuration(agent_commander.hostname, system, configuration,
+                                                           configuration_content)
+                    elif agent_commander.hash_configuration(system, configuration)[1] != \
+                            self._repository.hash_configuration(agent_commander.hostname, system, configuration):
+                        configuration_content = agent_commander.load_configuration(system, configuration)[1]
+                        self._repository.update_configuration(agent_commander.hostname, system, configuration,
+                                                              configuration_content)
 
     def get_systems(self):
         return self._repository.get_systems()

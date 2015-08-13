@@ -27,23 +27,17 @@ class SystemTestSnorkelAgentCore(SnorkelAgentCore):
         return True, self.systems_to_configurations[system]
 
     def _update_configuration(self, system_id, configuration_id, configuration_content):
-        if system_id < 0 or system_id > len(self.systems) - 1:
-            error("I don't know system id %s, is it nice?" % system_id)
-            return False, None
-        if configuration_id < 0 or configuration_id > len(self.configurations) -1:
-            error("I doesn't have this configuration %s, how much it costs?" % self.configurations)
-            return False, None
-        open(self.configurations[configuration_id], 'wb').write(configuration_content)
+        # if system_id < 0 or system_id > len(self.systems) - 1:
+        #     error("I don't know system id %s, is it nice?" % system_id)
+        #     return False, None
+        # if configuration_id < 0 or configuration_id > len(self.configurations) -1:
+        #     error("I doesn't have this configuration %s, how much it costs?" % self.configurations)
+        #     return False, None
+        open(configuration_id, 'wb').write(configuration_content)
         return True, None
 
-    def _load_configuration(self, system_id, configuration_id):
-        if system_id < 0 or system_id > len(self.systems) - 1:
-            error("I don't know system id %s, is it nice?" % system_id)
-            return False, None
-        if configuration_id < 0 or configuration_id > len(self.configurations) -1:
-            error("I doesn't have this configuration %s, how much it costs?" % self.configurations)
-            return False, None
-        return True, open(self.configurations[configuration_id], 'rb').read()
+    def _load_configuration(self, system_id, configuration):
+        return True, open(configuration, 'rb').read()
 
 
 def main():

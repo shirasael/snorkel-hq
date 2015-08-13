@@ -1,5 +1,7 @@
 ﻿__author__ = 'code-museum'
 
+import hashlib
+
 from logbook import info
 
 from hq.nice import ZMQ_REQUEST, SafeClientZMQSocket, SafeRandomPortServerZMQSocket, zmq_context, Commander, \
@@ -25,6 +27,9 @@ class AgentCommander(Commander):
         return self._command(SnorkelAgent.PUT_CONFIGURATION, system_id=system_id, configuration_id=configuration_id,
                              configuration_content=configuration_content)
 
+    def hash_configuration(self, system_id, configuration_id):
+        return self._command(SnorkelAgent.HASH_CONFIGURATION, system_id=system_id, configuration_id=configuration_id)
+
 
 class SnorkelAgent(CommandsHandler):
     GREETING_MSG = u'hello-you'
@@ -32,6 +37,7 @@ class SnorkelAgent(CommandsHandler):
     GET_CONFIGURATIONS = u'get-configurations'
     LOAD_CONFIGURATION = u'load-configuration'
     PUT_CONFIGURATION = u'put-configuration'
+    HASH_CONFIGURATION = u'hash-configuration'
 
     def __init__(self, client_core, agent_hostname, registration_queue_url='tcp://localhost:12345'):
         super(SnorkelAgent, self).__init__('tcp://*', SafeRandomPortServerZMQSocket)
@@ -48,6 +54,7 @@ class SnorkelAgent(CommandsHandler):
         self.add_safe_command_handler(self.GET_CONFIGURATIONS, self._agent_client_core.get_configurations)
         self.add_safe_command_handler(self.LOAD_CONFIGURATION, self._agent_client_core.load_configuration)
         self.add_safe_command_handler(self.PUT_CONFIGURATION, self._agent_client_core.update_configuration)
+        self.add_safe_command_handler(self.HASH_CONFIGURATION, self.hash_configuration)
 
     @property
     def _command_queue_url(self):
@@ -59,6 +66,12 @@ class SnorkelAgent(CommandsHandler):
                                             'hostname': self._agent_hostname,
                                             'command_queue_address': self._command_queue_url})
         self._registration_queue.receive_json()
+
+    def hash_configuration(self, system_id, configuration_id):
+        configuration_content = self._agent_client_core.load_configuration(system_id, configuration_id)[1]
+        sha1 = hashlib.sha1()
+        sha1.update(configuration_content)
+        return True, sha1.hexdigest()
 
 
 class SnorkelAgentCore(object):
