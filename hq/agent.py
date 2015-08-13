@@ -10,13 +10,13 @@ class AgentCommander(Commander):
     def __init__(self, address, hostname):
         super(AgentCommander, self).__init__(address)
         self._address = address
-        self._hostname = hostname
+        self.hostname = hostname
 
     def get_systems(self):
         return self._command(SnorkelAgent.GET_SYSTEMS)
 
-    def get_configurations(self, system_id):
-        return self._command(SnorkelAgent.GET_CONFIGURATIONS, system_id=system_id)
+    def get_configurations(self, system):
+        return self._command(SnorkelAgent.GET_CONFIGURATIONS, system=system)
 
     def load_configuration(self, system_id, configuration_id):
         return self._command(SnorkelAgent.LOAD_CONFIGURATION, system_id=system_id, configuration_id=configuration_id)
@@ -77,8 +77,8 @@ class SnorkelAgentCore(object):
     def get_systems(self):
         return True, self._get_systems()
 
-    def get_configurations(self, system_id):
-        return self._get_configurations(system_id)
+    def get_configurations(self, system):
+        return self._get_configurations(system)
 
     def load_configuration(self, system_id, configuration_id):
         return self._load_configuration(system_id, configuration_id)

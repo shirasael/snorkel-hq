@@ -49,12 +49,30 @@ class SnorkelRepository(object):
             systems.update(os.listdir(os.path.join(self._repository_path, agent)))
         return list(systems)
 
-    def get_servers(self, system):
+    def get_servers(self, system=None):
         servers = []
-        for agent in filter(lambda x: not x.startswith('.'), os.listdir(self._repository_path)):
-            if system in os.listdir(os.path.join(self._repository_path, agent)):
-                servers.append(agent)
+        for hostname in filter(lambda x: not x.startswith('.'), os.listdir(self._repository_path)):
+            if not system or system in os.listdir(os.path.join(self._repository_path, hostname)):
+                servers.append(hostname)
         return servers
+
+    def has_server(self, hostname):
+        return os.path.exists(os.path.join(self._repository_path, hostname))
+
+    def add_server(self, hostname):
+        if os.path.exists(os.path.join(self._repository_path, hostname)):
+            raise Exception('Server %s is already exists in repository!' % hostname)
+        os.mkdir(os.path.join(self._repository_path, hostname))
+
+    def add_system(self, hostname, system):
+        if not os.path.exists(os.path.join(self._repository_path, hostname)):
+            raise Exception("Can't find hostname %s in repository!" % hostname)
+        if os.path.exists(os.path.join(self._repository_path, hostname, system)):
+            raise Exception('System %s is already exists in repository!' % system)
+        os.mkdir(os.path.join(self._repository_path, hostname, system))
+
+    def has_system(self, hostname, system):
+        return os.path.exists(os.path.join(self._repository_path, hostname, system))
 
     def get_configurations(self, agent, system):
         encoded_configurations = os.listdir(os.path.join(self._repository_path, agent, system))

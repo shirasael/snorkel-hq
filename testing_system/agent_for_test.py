@@ -20,11 +20,11 @@ class SystemTestSnorkelAgentCore(SnorkelAgentCore):
     def _get_systems(self):
         return self.systems
 
-    def _get_configurations(self, system_id):
-        if system_id < 0 or system_id > len(self.systems) - 1:
-            error("I don't know system id %s, is it nice?" % system_id)
+    def _get_configurations(self, system):
+        if system not in self.systems_to_configurations:
+            error("I don't know system '%s', is it nice?" % system)
             return False, None
-        return True, self.systems_to_configurations[self.systems[system_id]]
+        return True, self.systems_to_configurations[system]
 
     def _update_configuration(self, system_id, configuration_id, configuration_content):
         if system_id < 0 or system_id > len(self.systems) - 1:

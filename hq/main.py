@@ -1,7 +1,7 @@
 __author__ = 'code-museum'
 from collections import defaultdict
 
-from logbook import info
+from logbook import info, debug
 
 from hq.nice.zeromq import zmq_context
 from hq.nice import zmq_poll, ZMQ_REPLY, Commander, CommandsHandler, SafeServerZMQSocket
@@ -71,6 +71,18 @@ class SnorkelHQ(CommandsHandler):
     def _update_agent_commander(self, hostname, address):
         if hostname not in self._agents_commanders:
             self._agents_commanders[hostname] = AgentCommander(address, hostname)
+
+    def update_repository(self):
+        for hostname, agent_commander in self._agents_commanders.iteritems():
+            debug('Found server: ' + agent_commander.hostname)
+            if not self._repository.has_server(agent_commander.hostname):
+                self._repository.add_server(agent_commander.hostname)
+            for system in agent_commander.get_systems()[1]:
+                debug('Found system: ' + system)
+                if not self._repository.has_system(agent_commander.hostname, system):
+                    self._repository.add_system(agent_commander.hostname, system)
+                for configuration in agent_commander.get_configurations(system)[1]:
+                    debug('Found configuration: ' + configuration)
 
     def get_systems(self):
         return self._repository.get_systems()

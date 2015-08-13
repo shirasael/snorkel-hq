@@ -2,6 +2,8 @@ __author__ = 'code-museum'
 
 from datetime import datetime, timedelta
 
+from hq.main import SnorkelHQ
+
 
 class SnorkelAgentRunner(object):
     def __init__(self, agent):
@@ -18,6 +20,7 @@ class SnorkelAgentRunner(object):
 
 class SnorkelHQRunner(object):
     def __init__(self, snorkel_hq):
+        assert isinstance(snorkel_hq, SnorkelHQ)
         self._snorkel_hq = snorkel_hq
 
     def start(self):
