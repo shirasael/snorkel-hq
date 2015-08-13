@@ -1,11 +1,9 @@
-from hq.nice.zeromq import zmq_context
-
 __author__ = 'code-museum'
-
 from collections import defaultdict
 
 from logbook import info
 
+from hq.nice.zeromq import zmq_context
 from hq.nice import zmq_poll, ZMQ_REPLY, Commander, CommandsHandler, SafeServerZMQSocket
 from hq.repository import SnorkelRepository
 from hq.agent import AgentCommander, SnorkelAgent
@@ -57,7 +55,11 @@ class SnorkelHQ(CommandsHandler):
         self._repository.initialize()
         self._initialized = True
 
-    def welcome_new_agents(self):
+    def _force_initialize(self):
+        if not self._initialized:
+            raise Exception("Please initialize this class with initialize() function!")
+
+    def handle_agents_registration(self):
         self._force_initialize()
         while zmq_poll(self._agents_registration_queue, 0):
             info("Got greeting from agent")
@@ -84,10 +86,6 @@ class SnorkelHQ(CommandsHandler):
     def get_servers(self, system=None):
         info("get_servers called with parameter system=%s" % repr(system))
         return self._repository.get_servers(system)
-
-    def _force_initialize(self):
-        if not self._initialized:
-            raise Exception("Please initialize this class with initialize() function!")
 
     def get_configurations(self, agent, system):
         info("Returning configurations paths")

@@ -23,5 +23,6 @@ class SnorkelHQRunner(object):
     def start(self):
         self._snorkel_hq.initialize()
         while True:
-            self._snorkel_hq.welcome_new_agents()
+            self._snorkel_hq.handle_agents_registration()
+            self._snorkel_hq.update_repository()
             self._snorkel_hq.handle_commands()

@@ -61,14 +61,14 @@ class SnorkelRepository(object):
         return [base64.decodestring(c) for c in encoded_configurations]
 
     def load_configuration(self, agent, system, configuration):
-        return open(self.get_configuration_path(agent, system, configuration), 'rb').read()
+        return open(self._get_configuration_path(agent, system, configuration), 'rb').read()
 
     def update_configuration(self, agent, system, configuration, content):
-        open(self.get_configuration_path(agent, system, configuration), 'wb').write(content)
+        open(self._get_configuration_path(agent, system, configuration), 'wb').write(content)
         if self._commit_configuration_update(agent, system, configuration):
             self._git_manager.push('origin', 'master')
 
-    def get_configuration_path(self, agent, system, configuration):
+    def _get_configuration_path(self, agent, system, configuration):
         return os.path.join(self._repository_path, agent, system, base64.encodestring(configuration).strip() + '.cfg')
 
     def _commit_configuration_update(self, agent, system, configuration):
