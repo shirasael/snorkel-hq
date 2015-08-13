@@ -44,7 +44,7 @@ class SnorkelHQ(CommandsHandler):
         self._agents_registration_queue = SafeServerZMQSocket(
             zmq_context(), ZMQ_REPLY, agents_registration_queue_url)
 
-        self._agents = {}
+        self._agents_commanders = {}
         self._systems = defaultdict(dict)
 
         self._repository = SnorkelRepository(repository_path, remote)
@@ -62,33 +62,23 @@ class SnorkelHQ(CommandsHandler):
     def handle_agents_registration(self):
         self._force_initialize()
         while zmq_poll(self._agents_registration_queue, 0):
-            info("Got greeting from agent")
-            msg = self._agents_registration_queue.receive_json()
+            message = self._agents_registration_queue.receive_json()
             self._agents_registration_queue.send_json('ACK')
-            if msg['type'] != SnorkelAgent.GREETING_MSG:
+            if message['type'] != SnorkelAgent.GREETING_MSG:
                 continue
-            info("Hey! it's an agent!")
-            self.add_agent(hostname=msg['hostname'], address=msg['command_queue_address'])
+            self._update_agent_commander(hostname=message['hostname'], address=message['command_queue_address'])
 
-    def add_agent(self, hostname, address):
-        if hostname in self._agents:
-            return
-        agent = AgentCommander(address, hostname)
-        self._agents[hostname] = agent
-        for i, system in enumerate(agent.get_systems()):
-            self._systems[system][hostname] = i
-        info("Agent running on %s with systems %s was added" % (hostname, agent.get_systems()))
+    def _update_agent_commander(self, hostname, address):
+        if hostname not in self._agents_commanders:
+            self._agents_commanders[hostname] = AgentCommander(address, hostname)
 
     def get_systems(self):
-        info("get_systems called, returning: %s" % self._systems.keys())
         return self._repository.get_systems()
 
     def get_servers(self, system=None):
-        info("get_servers called with parameter system=%s" % repr(system))
         return self._repository.get_servers(system)
 
     def get_configurations(self, agent, system):
-        info("Returning configurations paths")
         return self._repository.get_configurations(agent, system)
 
     def load_configuration(self, agent, system, configuration):
@@ -96,9 +86,3 @@ class SnorkelHQ(CommandsHandler):
 
     def update_configuration(self, agent, system, configuration, content):
         self._repository.update_configuration(agent, system, configuration, content)
-
-    def deploy_configuration(self, values):
-        system = self._systems[values['system_key']]
-        for agent in system.agents:
-            agent.update_configuration()
-        return True
