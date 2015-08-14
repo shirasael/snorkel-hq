@@ -15,20 +15,27 @@ class AgentCommander(Commander):
         self.hostname = hostname
 
     def get_systems(self):
-        return self._command(SnorkelAgent.GET_SYSTEMS)
+        status, value = self._command(SnorkelAgent.GET_SYSTEMS)
+        return value
 
     def get_configurations(self, system):
-        return self._command(SnorkelAgent.GET_CONFIGURATIONS, system=system)
+        status, value = self._command(SnorkelAgent.GET_CONFIGURATIONS, system=system)
+        return value
 
     def load_configuration(self, system_id, configuration_id):
-        return self._command(SnorkelAgent.LOAD_CONFIGURATION, system_id=system_id, configuration_id=configuration_id)
+        status, value = self._command(SnorkelAgent.LOAD_CONFIGURATION, system_id=system_id,
+                                      configuration_id=configuration_id)
+        return value
 
     def update_configuration(self, system_id, configuration_id, configuration_content):
-        return self._command(SnorkelAgent.PUT_CONFIGURATION, system_id=system_id, configuration_id=configuration_id,
-                             configuration_content=configuration_content)
+        status, value = self._command(SnorkelAgent.PUT_CONFIGURATION, system_id=system_id,
+                                      configuration_id=configuration_id, configuration_content=configuration_content)
+        return value
 
     def hash_configuration(self, system_id, configuration_id):
-        return self._command(SnorkelAgent.HASH_CONFIGURATION, system_id=system_id, configuration_id=configuration_id)
+        status, value = self._command(SnorkelAgent.HASH_CONFIGURATION, system_id=system_id,
+                                      configuration_id=configuration_id)
+        return value
 
 
 class SnorkelAgent(CommandsHandler):

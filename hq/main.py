@@ -77,19 +77,19 @@ class SnorkelHQ(CommandsHandler):
             debug('Found server: ' + agent_commander.hostname)
             if not self._repository.has_server(agent_commander.hostname):
                 self._repository.add_server(agent_commander.hostname)
-            for system in agent_commander.get_systems()[1]:
+            for system in agent_commander.get_systems():
                 debug('Found system: ' + system)
                 if not self._repository.has_system(agent_commander.hostname, system):
                     self._repository.add_system(agent_commander.hostname, system)
-                for configuration in agent_commander.get_configurations(system)[1]:
+                for configuration in agent_commander.get_configurations(system):
                     debug('Found configuration: ' + configuration)
                     if not self._repository.has_configuration(agent_commander.hostname, system, configuration):
-                        configuration_content = agent_commander.load_configuration(system, configuration)[1]
+                        configuration_content = agent_commander.load_configuration(system, configuration)
                         self._repository.add_configuration(agent_commander.hostname, system, configuration,
                                                            configuration_content)
-                    elif agent_commander.hash_configuration(system, configuration)[1] != \
+                    elif agent_commander.hash_configuration(system, configuration) != \
                             self._repository.hash_configuration(agent_commander.hostname, system, configuration):
-                        configuration_content = agent_commander.load_configuration(system, configuration)[1]
+                        configuration_content = agent_commander.load_configuration(system, configuration)
                         self._repository.update_configuration(agent_commander.hostname, system, configuration,
                                                               configuration_content)
 
