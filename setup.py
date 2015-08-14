@@ -5,7 +5,7 @@ from setuptools import setup
 REQUIREMENTS = ['pyzmq', 'logbook']
 
 setup(
-    name='sonrkel-hq',
+    name='snorkel-hq',
     version='0.0.1',
     packages=['hq'],
     install_requires=REQUIREMENTS,
