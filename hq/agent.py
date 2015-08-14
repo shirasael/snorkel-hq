@@ -88,7 +88,7 @@ class SnorkelAgentCore(object):
         raise NotImplementedError()
 
     def get_systems(self):
-        return True, self._get_systems()
+        return self._get_systems()
 
     def get_configurations(self, system):
         return self._get_configurations(system)
