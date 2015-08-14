@@ -1,7 +1,5 @@
 __author__ = 'code-museum'
 
-from logbook import error
-
 from hq import SnorkelAgentCore, SnorkelAgent, SnorkelAgentRunner
 
 

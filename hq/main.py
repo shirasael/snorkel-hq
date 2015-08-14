@@ -1,7 +1,7 @@
 __author__ = 'code-museum'
 from collections import defaultdict
 
-from logbook import info, debug
+from logbook import debug
 
 from hq.nice.zeromq import zmq_context
 from hq.nice import zmq_poll, ZMQ_REPLY, Commander, CommandsHandler, SafeServerZMQSocket
