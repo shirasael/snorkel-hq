@@ -1,4 +1,6 @@
-﻿__author__ = 'code-museum'
+﻿from hq.nice.zeromq import zmq_poll
+
+__author__ = 'code-museum'
 
 import hashlib
 
@@ -72,6 +74,10 @@ class SnorkelAgent(CommandsHandler):
         self._registration_queue.send_json({'type': self.GREETING_MSG,
                                             'hostname': self._agent_hostname,
                                             'command_queue_address': self._command_queue_url})
+        if not zmq_poll(self._registration_queue, 3000):
+            self._registration_queue.initialize()
+            return
+
         self._registration_queue.receive_json()
 
     def hash_configuration(self, system_id, configuration_id):
