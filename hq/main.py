@@ -109,8 +109,7 @@ class SnorkelHQ(CommandsHandler):
         return self._repository.get_configurations(hostname, system)
 
     def load_configuration(self, hostname, system, configuration):
-        print 'n', hostname, system, configuration
         return self._repository.load_configuration(hostname, system, configuration)
 
-    def update_configuration(self, agent, system, configuration, content):
-        self._repository.update_configuration(agent, system, configuration, content)
+    def update_configuration(self, hostname, system, configuration, content):
+        self._repository.update_configuration(hostname, system, configuration, content)
