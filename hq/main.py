@@ -16,14 +16,18 @@ class SnorkelHQCommander(Commander):
     def get_systems(self):
         return self._command(SnorkelHQ.GET_SYSTEMS)
 
-    def get_servers(self, system=None):
+    def get_servers(self, system):
         return self._command(SnorkelHQ.GET_SERVERS, system=system)
 
-    def get_configurations(self, agent=None, system=None):
-        return self._command(SnorkelHQ.GET_CONFIGURATIONS, agent=agent, system=system)
+    def get_configurations(self, hostname, system):
+        return self._command(SnorkelHQ.GET_CONFIGURATIONS, hostname=hostname, system=system)
 
-    def load_configuration(self, agent=None, system=None, configuration=None):
-        return self._command(SnorkelHQ.LOAD_CONFIGURATION, agent=agent, system=system, configuration=configuration)
+    def load_configuration(self, hostname, system, configuration):
+        return self._command(SnorkelHQ.LOAD_CONFIGURATION, hostname=hostname, system=system, configuration=configuration)
+
+    def update_configuration(self, hostname, system, configuration, content):
+        return self._command(SnorkelHQ.UPDATE_CONFIGURATION, hostname=hostname, system=system,
+                             configuration=configuration, content=content)
 
 
 class SnorkelHQ(CommandsHandler):
@@ -31,6 +35,7 @@ class SnorkelHQ(CommandsHandler):
     GET_SERVERS = 'get-servers'
     GET_CONFIGURATIONS = 'get-configurations'
     LOAD_CONFIGURATION = 'load-configuration'
+    UPDATE_CONFIGURATION = 'update-configuration'
 
     def __init__(self, repository_path, remote, agents_registration_queue_url='tcp://*:12345',
                  command_queue_url='tcp://*:12346'):
@@ -40,6 +45,7 @@ class SnorkelHQ(CommandsHandler):
         self.add_safe_command_handler(self.GET_SERVERS, self.get_servers)
         self.add_safe_command_handler(self.GET_CONFIGURATIONS, self.get_configurations)
         self.add_safe_command_handler(self.LOAD_CONFIGURATION, self.load_configuration)
+        self.add_safe_command_handler(self.UPDATE_CONFIGURATION, self.update_configuration)
 
         self._agents_registration_queue = SafeServerZMQSocket(
             zmq_context(), ZMQ_REPLY, agents_registration_queue_url)
@@ -99,11 +105,12 @@ class SnorkelHQ(CommandsHandler):
     def get_servers(self, system=None):
         return self._repository.get_servers(system)
 
-    def get_configurations(self, agent, system):
-        return self._repository.get_configurations(agent, system)
+    def get_configurations(self, hostname, system):
+        return self._repository.get_configurations(hostname, system)
 
-    def load_configuration(self, agent, system, configuration):
-        return self._repository.load_configuration(agent, system, configuration)
+    def load_configuration(self, hostname, system, configuration):
+        print 'n', hostname, system, configuration
+        return self._repository.load_configuration(hostname, system, configuration)
 
     def update_configuration(self, agent, system, configuration, content):
         self._repository.update_configuration(agent, system, configuration, content)

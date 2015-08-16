@@ -12,9 +12,6 @@ class Commander(object):
     def __init__(self, commands_url):
         self._command_socket = SafeClientZMQSocket(zmq_context(), ZMQ_REQUEST, commands_url)
 
-    def command(self):
-        pass
-
     def _command(self, command_type, **kwargs):
         command = {self.COMMAND_TYPE_FIELD: command_type, self.PARAMETERS_FIELD: kwargs}
 
@@ -28,7 +25,8 @@ class Commander(object):
             error("Answer format is wrong, use 'status' and 'value' attributes")
             return None
         if not answer[CommandsHandler.STATUS_FIELD]:
-            error("Command not succeeded, because of %s" % answer['value'])
+            error("Command not succeeded, because of: %s%s" % ('\n' if '\n' in answer['value'] else '',
+                                                               answer['value']))
             return None
         return answer[CommandsHandler.VALUE_FIELD]
 
@@ -48,9 +46,9 @@ class CommandsHandler(object):
         def safe_handler(*args, **kwargs):
             try:
                 return True, handler(*args, **kwargs)
-            except Exception as e:
-                return False, e
-
+            except:
+                import traceback
+                return False, traceback.format_exc()
         self._massage_type_to_handlers[command_type] = safe_handler
 
     def handle_commands(self):
@@ -67,11 +65,11 @@ class CommandsHandler(object):
             error("I don't know the type '%s', are you crazy?" % msg[Commander.COMMAND_TYPE_FIELD])
             (status, value) = False, 'got-bad-message-type'
         else:
-            info("Got 'get-configuration' commands.")
+            info("Got '%s' commands." % msg[Commander.COMMAND_TYPE_FIELD])
             (status, value) = self._massage_type_to_handlers[
                 msg[Commander.COMMAND_TYPE_FIELD]](**msg[Commander.PARAMETERS_FIELD])
 
         if status is False and isinstance(value, Exception):
             self._command_handling_socket.send_json({self.STATUS_FIELD: status, self.VALUE_FIELD: str(value)})
-            raise value
-        self._command_handling_socket.send_json({self.STATUS_FIELD: status, self.VALUE_FIELD: value})
+        else:
+            self._command_handling_socket.send_json({self.STATUS_FIELD: status, self.VALUE_FIELD: value})
