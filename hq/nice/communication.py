@@ -9,8 +9,8 @@ class Commander(object):
     COMMAND_TYPE_FIELD = 'command_type'
     PARAMETERS_FIELD = 'parameters'
 
-    def __init__(self, commands_url):
-        self._command_socket = SafeClientZMQSocket(zmq_context(), ZMQ_REQUEST, commands_url)
+    def __init__(self, commands_url, socket_cls=SafeClientZMQSocket):
+        self._command_socket = socket_cls(zmq_context(), ZMQ_REQUEST, commands_url)
 
     def _command(self, command_type, **kwargs):
         command = {self.COMMAND_TYPE_FIELD: command_type, self.PARAMETERS_FIELD: kwargs}
