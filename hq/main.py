@@ -113,3 +113,4 @@ class SnorkelHQ(CommandsHandler):
 
     def update_configuration(self, hostname, system, configuration, content):
         self._repository.update_configuration(hostname, system, configuration, content)
+        self._agents_commanders[hostname].update_configuration(system, configuration, content)

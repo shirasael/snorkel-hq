@@ -13,6 +13,9 @@ def main():
     print banana_configurations
     print
     print snorkel_hq_commander.load_configuration(u'localhost', u'Banana', banana_configurations[0])
+    # print snorkel_hq_commander.load_configuration(None, None, None)
+    snorkel_hq_commander.update_configuration(u'localhost', u'Banana', banana_configurations[0], '{}')
+    print snorkel_hq_commander.load_configuration(u'localhost', u'Banana', banana_configurations[0])
 
 if __name__ == '__main__':
     main()
