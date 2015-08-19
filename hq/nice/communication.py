@@ -19,6 +19,7 @@ class Commander(object):
         if not zmq_poll(self._command_socket):
             error("Timeout while waiting for answer to command: %s" % command_type)
             self._command_socket.initialize()
+            return None
 
         answer = self._command_socket.receive_json()
         if CommandsHandler.STATUS_FIELD not in answer or CommandsHandler.VALUE_FIELD not in answer:
@@ -49,6 +50,7 @@ class CommandsHandler(object):
             except:
                 import traceback
                 return False, traceback.format_exc()
+
         self._massage_type_to_handlers[command_type] = safe_handler
 
     def handle_commands(self):
