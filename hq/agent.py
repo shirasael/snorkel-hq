@@ -111,3 +111,22 @@ class SnorkelAgentCore(object):
 
     def update_configuration(self, system_id, configuration_id, configuration_content):
         return self._update_configuration(system_id, configuration_id, configuration_content)
+
+
+class DefaultAgentCore(SnorkelAgentCore):
+    def __init__(self, systems_to_configurations):
+        super(SnorkelAgentCore, self).__init__()
+        self._systems_to_configurations = systems_to_configurations
+
+    def _get_systems(self):
+        return True, self._systems_to_configurations.keys()
+
+    def _get_configurations(self, system):
+        return True, self._systems_to_configurations[system]
+
+    def _update_configuration(self, system_id, configuration_id, configuration_content):
+        open(configuration_id, 'wb').write(configuration_content)
+        return True, None
+
+    def _load_configuration(self, system_id, configuration):
+        return True, open(configuration, 'rb').read()

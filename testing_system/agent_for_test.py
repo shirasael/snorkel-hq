@@ -1,35 +1,18 @@
+from hq.agent import DefaultAgentCore
+
 __author__ = 'code-museum'
 
-from hq import SnorkelAgentCore, SnorkelAgent, SnorkelAgentRunner
-
-
-class SystemTestSnorkelAgentCore(SnorkelAgentCore):
-    def __init__(self):
-        super(SystemTestSnorkelAgentCore, self).__init__()
-        self.systems_to_configurations = {
-            u'Banana': [u'd:\\Temp\\Sys\\sys.json'],
-            u'Clementine': [u'd:\\Temp\\Tem\\tem.json']
-        }
-
-    def _get_systems(self):
-        return True, self.systems_to_configurations.keys()
-
-    def _get_configurations(self, system):
-        return True, self.systems_to_configurations[system]
-
-    def _update_configuration(self, system_id, configuration_id, configuration_content):
-        open(configuration_id, 'wb').write(configuration_content)
-        return True, None
-
-    def _load_configuration(self, system_id, configuration):
-        return True, open(configuration, 'rb').read()
+from hq import SnorkelAgent, SnorkelAgentRunner
 
 
 def main():
-    snorkel_agent_core = SystemTestSnorkelAgentCore()
+    snorkel_agent_core = DefaultAgentCore({
+        u'Banana': [u'd:\\Temp\\Sys\\sys.json'],
+        u'Clementine': [u'd:\\Temp\\Tem\\tem.json']})
     snorkel_agent = SnorkelAgent(snorkel_agent_core, 'localhost')
     snorkel_agent_runner = SnorkelAgentRunner(snorkel_agent)
     snorkel_agent_runner.start()
+
 
 if __name__ == '__main__':
     main()
