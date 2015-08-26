@@ -1,11 +1,10 @@
-﻿from hq.nice.zeromq import zmq_poll
-
-__author__ = 'code-museum'
+﻿__author__ = 'code-museum'
 
 import hashlib
 
 from logbook import info
 
+from hq.nice.zeromq import zmq_poll
 from hq.nice import ZMQ_REQUEST, SafeClientZMQSocket, SafeRandomPortServerZMQSocket, zmq_context, Commander, \
     CommandsHandler
 
@@ -122,11 +121,11 @@ class DefaultAgentCore(SnorkelAgentCore):
         return True, self._systems_to_configurations.keys()
 
     def _get_configurations(self, system):
-        return True, self._systems_to_configurations[system]
+        return True, self._systems_to_configurations[system].keys()
 
     def _update_configuration(self, system_id, configuration_id, configuration_content):
-        open(configuration_id, 'wb').write(configuration_content)
+        open(self._systems_to_configurations[system_id][configuration_id], 'wb').write(configuration_content)
         return True, None
 
-    def _load_configuration(self, system_id, configuration):
-        return True, open(configuration, 'rb').read()
+    def _load_configuration(self, system_id, configuration_id):
+        return True, open(self._systems_to_configurations[system_id][configuration_id], 'rb').read()

@@ -78,7 +78,7 @@ class SnorkelRepository(object):
 
     def get_configurations(self, agent, system):
         encoded_configurations = get_folder_items_names(self._repository_path, agent, system)
-        return [base64.decodestring(c) for c in encoded_configurations]
+        return [base64.decodestring(c.rstrip('.cfg')) for c in encoded_configurations]
 
     def load_configuration(self, agent, system, configuration):
         return open(self._get_configuration_path(agent, system, configuration), 'rb').read()

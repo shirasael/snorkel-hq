@@ -1,14 +1,16 @@
-from hq.agent import DefaultAgentCore
-
 __author__ = 'code-museum'
 
+import json
+
+from hq.agent import DefaultAgentCore
 from hq import SnorkelAgent, SnorkelAgentRunner
 
 
 def main():
-    snorkel_agent_core = DefaultAgentCore({
-        u'Banana': [u'd:\\Temp\\Sys\\sys.json'],
-        u'Clementine': [u'd:\\Temp\\Tem\\tem.json']})
+
+    configuration = json.load(open('configuration.json', 'rb'))
+
+    snorkel_agent_core = DefaultAgentCore(configuration)
     snorkel_agent = SnorkelAgent(snorkel_agent_core, 'localhost')
     snorkel_agent_runner = SnorkelAgentRunner(snorkel_agent)
     snorkel_agent_runner.start()

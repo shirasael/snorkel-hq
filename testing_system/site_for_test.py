@@ -12,7 +12,7 @@ def main():
     print snorkel_hq_commander.get_systems()
     systems = snorkel_hq_commander.get_systems()
     print systems
-    banana_servers = snorkel_hq_commander.get_servers(u'Banana')
+    banana_servers = snorkel_hq_commander.get_servers(u'Clementine')
     print banana_servers
     banana_configurations = snorkel_hq_commander.get_configurations(u'localhost', u'Banana')
     print banana_configurations
