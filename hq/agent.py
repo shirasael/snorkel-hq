@@ -125,6 +125,10 @@ class DefaultAgentCore(SnorkelAgentCore):
         return True, [configuration_id for configuration_id in self._systems_to_configurations[system].keys()
                       if not check_path_is_dir(self._systems_to_configurations[system][configuration_id])]
 
+    def _get_configurations_folders(self, system):
+        return True, [configuration_id for configuration_id in self._systems_to_configurations[system].keys()
+                      if check_path_is_dir(self._systems_to_configurations[system][configuration_id])]
+
     def _update_configuration(self, system_id, configuration_id, configuration_content):
         open(self._systems_to_configurations[system_id][configuration_id], 'wb').write(configuration_content)
         return True, None
