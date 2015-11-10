@@ -2,7 +2,7 @@ __author__ = 'code-museum'
 
 from logbook import error, info
 
-from hq.nice.zeromq import SafeClientZMQSocket, ZMQ_REQUEST, ZMQ_REPLY, SafeServerZMQSocket, zmq_poll, zmq_context
+from hq.nicer.zeromq import SafeClientZMQSocket, ZMQ_REQUEST, ZMQ_REPLY, SafeServerZMQSocket, zmq_poll, zmq_context
 
 
 class Commander(object):

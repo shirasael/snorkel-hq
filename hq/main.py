@@ -1,13 +1,13 @@
-__author__ = 'code-museum'
-
 from collections import defaultdict
 
 from logbook import debug
 
-from hq.nice.zeromq import zmq_context
-from hq.nice import zmq_poll, ZMQ_REPLY, Commander, CommandsHandler, SafeServerZMQSocket
-from hq.repository import SnorkelRepository
 from hq.agent import AgentCommander, SnorkelAgent
+from hq.nicer import zmq_poll, ZMQ_REPLY, Commander, CommandsHandler, SafeServerZMQSocket
+from hq.nicer.zeromq import zmq_context
+from hq.repository import SnorkelRepository
+
+__author__ = 'netanelrevah'
 
 
 class SnorkelHQCommander(Commander):
@@ -24,7 +24,8 @@ class SnorkelHQCommander(Commander):
         return self._command(SnorkelHQ.GET_CONFIGURATIONS, hostname=hostname, system=system)
 
     def load_configuration(self, hostname, system, configuration):
-        return self._command(SnorkelHQ.LOAD_CONFIGURATION, hostname=hostname, system=system, configuration=configuration)
+        return self._command(SnorkelHQ.LOAD_CONFIGURATION, hostname=hostname, system=system,
+                             configuration=configuration)
 
     def update_configuration(self, hostname, system, configuration, content):
         return self._command(SnorkelHQ.UPDATE_CONFIGURATION, hostname=hostname, system=system,

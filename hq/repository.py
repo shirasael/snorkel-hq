@@ -6,8 +6,8 @@ import hashlib
 
 from logbook import info
 
-from hq.nice.files import check_path_existent, join_path, remove_file, create_folder, get_folder_items_names
-from hq.nice.git import GitManager
+from hq.nicer.files import check_path_existent, join_path, remove_file, create_folder, get_folder_items_names
+from hq.nicer.git import GitManager
 
 
 class SnorkelRepository(object):

@@ -4,8 +4,8 @@ import hashlib
 
 from logbook import info
 
-from hq.nice.zeromq import zmq_poll
-from hq.nice import ZMQ_REQUEST, SafeClientZMQSocket, SafeRandomPortServerZMQSocket, zmq_context, Commander, \
+from hq.nicer.zeromq import zmq_poll
+from hq.nicer import ZMQ_REQUEST, SafeClientZMQSocket, SafeRandomPortServerZMQSocket, zmq_context, Commander, \
     CommandsHandler
 
 
