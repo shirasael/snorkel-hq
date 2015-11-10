@@ -1,13 +1,13 @@
-
-__author__ = 'code-museum'
-
 import base64
+
 import hashlib
 
 from logbook import info
 
 from hq.nicer.files import check_path_existent, join_path, remove_file, create_folder, get_folder_items_names
 from hq.nicer.git import GitManager
+
+__author__ = 'code-museum'
 
 
 class SnorkelRepository(object):
