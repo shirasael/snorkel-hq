@@ -1,12 +1,13 @@
-﻿__author__ = 'code-museum'
-
-import hashlib
+﻿import hashlib
 
 from logbook import info
 
-from hq.nicer.zeromq import zmq_poll
 from hq.nicer import ZMQ_REQUEST, SafeClientZMQSocket, SafeRandomPortServerZMQSocket, zmq_context, Commander, \
     CommandsHandler
+from hq.nicer.files import check_path_existent, check_path_is_dir
+from hq.nicer.zeromq import zmq_poll
+
+__author__ = 'netanelrevah'
 
 
 class AgentCommander(Commander):
@@ -121,7 +122,8 @@ class DefaultAgentCore(SnorkelAgentCore):
         return True, self._systems_to_configurations.keys()
 
     def _get_configurations(self, system):
-        return True, self._systems_to_configurations[system].keys()
+        return True, [configuration_id for configuration_id in self._systems_to_configurations[system].keys()
+                      if not check_path_is_dir(self._systems_to_configurations[system][configuration_id])]
 
     def _update_configuration(self, system_id, configuration_id, configuration_content):
         open(self._systems_to_configurations[system_id][configuration_id], 'wb').write(configuration_content)

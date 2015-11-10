@@ -3,6 +3,7 @@
     "Sys": "d:\\Temp\\Sys\\sys.json"
   },
   "Clementine": {
-    "Tem": "d:\\Temp\\Tem\\tem.json"
+    "Tem": "d:\\Temp\\Tem\\tem.json",
+    "MoreConfigs": "D:\\Temp\\Tem\\MoreConfigs\\"
   }
 }

@@ -1,6 +1,6 @@
-__author__ = 'code-museum'
-
 import os
+
+__author__ = 'code-museum'
 
 
 def join_path(base_path, *continues):
@@ -9,6 +9,10 @@ def join_path(base_path, *continues):
 
 def check_path_existent(base_path, *continues):
     return os.path.exists(join_path(base_path, *continues))
+
+
+def check_path_is_dir(base_path, *continues):
+    return os.path.isdir(join_path(base_path, *continues))
 
 
 def remove_file(base_path, *continues):
